@@ -463,6 +463,8 @@ public class KCamera extends Activity {
 		lv.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
+				if (position == 0) // header clicked
+					return;
 				// TextView label = (TextView)view;
 				// label.setTextColor(Color.BLUE);
 				mYUVProcessor = YUVProcessor.YUV_PROCESSORS[position
