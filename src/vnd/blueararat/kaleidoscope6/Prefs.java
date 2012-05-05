@@ -12,9 +12,6 @@ import android.view.View;
 
 public class Prefs extends PreferenceActivity implements
 		OnSharedPreferenceChangeListener {
-	// private SeekBar mSeekBar;
-	// private TextView mTextView;
-	// private Preference mPreference;
 	private SeekbarPref mSeekbarPrefM;
 	private SeekbarPref mSeekbarPrefJ;
 	private ListPreference mSaveFormat;
@@ -24,13 +21,7 @@ public class Prefs extends PreferenceActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		// RelativeLayout layout =
-		// (RelativeLayout)findViewById(R.layout.seekbarpref);
-		// mSeekBar = (SeekBar)layout.findViewById(R.id.seekBar1);
-		// mTextView = (TextView)layout.findViewById(R.id.Value);
-		// mSeekBar.setOnSeekBarChangeListener(this);
 		addPreferencesFromResource(R.xml.preferences);
-		// Get a reference to the preferences
 		mSeekbarPrefM = (SeekbarPref) getPreferenceScreen().findPreference(
 				"number_of_mirrors");
 		mSeekbarPrefJ = (SeekbarPref) getPreferenceScreen().findPreference(
@@ -43,24 +34,12 @@ public class Prefs extends PreferenceActivity implements
 				"format");
 		mSaveFormat.setSummary(getString(R.string.pictures_will_be_saved) + " "
 				+ mSaveFormat.getValue());
-		// boolean b = mSaveFormat.getValue().equals("0");
 		mSeekbarPrefJ.setEnabled(mSaveFormat.getValue().equals("JPEG"));
-		// mSeekbarPrefJ.setEnabled(Boolean.parseBoolean(mSaveFormat.getValue()));
-		// mTextView =
-		// (TextView)getPreferenceScreen().findPreference(KEY_LIST_PREFERENCE);
-
-		// mTextView = (TextView)layout.findViewById(R.id.Value);
-		// mSeekBar.setOnSeekBarChangeListener(this);
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-
-		// Start the force toggle
-		// mForceCheckBoxRunnable.run();
-
-		// Set up a listener whenever a key changes
 		getPreferenceScreen().getSharedPreferences()
 				.registerOnSharedPreferenceChangeListener(this);
 	}
@@ -69,7 +48,6 @@ public class Prefs extends PreferenceActivity implements
 	protected void onPause() {
 		super.onPause();
 
-		// Unregister the listener whenever a key changes
 		getPreferenceScreen().getSharedPreferences()
 				.unregisterOnSharedPreferenceChangeListener(this);
 	}
@@ -97,13 +75,11 @@ public class Prefs extends PreferenceActivity implements
 		// edit.putInt(Kaleidoscope.KEY_NUMBER_OF_MIRRORS, 4);
 		edit.putString(Kaleidoscope.KEY_IMAGE_URI, "");
 		edit.commit();
-		// mSeekbarPrefM.setValue(arg0.getInt(arg1, 14));
 		mSeekbarPrefM.setProgressValue(4);
 		mSeekbarPrefJ.setProgressValue(40);
 		mSaveFormat.setValue(getString(R.string.default_save_format));
 		mSeekbarPrefB.setProgressValue(49);
 		mCheckBoxPreference.setChecked(true);
-		// Toast.makeText(this, "reset_settings", Toast.LENGTH_LONG).show();
 	}
 
 	// @Override

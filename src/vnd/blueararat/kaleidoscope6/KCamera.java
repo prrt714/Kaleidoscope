@@ -316,77 +316,14 @@ public class KCamera extends Activity {
 	public void goIn(View view) {
 		Animation goInAnimation = AnimationUtils.loadAnimation(this,
 				R.anim.translation_menu_in);
-		// Now Set your animation
 		view.startAnimation(goInAnimation);
-		// if (view.getVisibility() == View.VISIBLE) return;
-		//
-		// view.setVisibility(View.VISIBLE);
-		// Animation animation = new AlphaAnimation(0F, 1F);
-		// animation.setDuration(400);
-		// view.startAnimation(animation);
-		// Animation animation = new TranslateAnimation(-400, 0,0, 0);
-		// animation.setDuration(2000);
-		// view.startAnimation(animation);
 	}
-
-	// public void goOut(View view) {
-	// Animation goOutAnimation = AnimationUtils.loadAnimation(this,
-	// android.R.anim.fade_out);
-	// // Now Set your animation
-	// view.startAnimation(goOutAnimation);
-	// // if (view.getVisibility() != View.VISIBLE) return;
-	// //
-	// // Animation animation = new AlphaAnimation(1F, 0F);
-	// // animation.setDuration(400);
-	// // view.startAnimation(animation);
-	// // view.setVisibility(View.GONE);
-	// }
 
 	public void goOut(View view) {
 		Animation goOutAnimation = AnimationUtils.loadAnimation(this,
 				R.anim.translation_menu_out);
-		// Now Set your animation
 		goOutAnimation.reset();
 		view.startAnimation(goOutAnimation);
-		// if (view.getVisibility() != View.VISIBLE) return;
-		//
-		// Animation animation = new AlphaAnimation(1F, 0F);
-		// animation.setDuration(400);
-		// view.startAnimation(animation);
-		// view.setVisibility(View.GONE);
-		// Animation animation = new TranslateAnimation(0, -400,0, 0);
-		// animation.setDuration(2000);
-		// view.startAnimation(animation);
-		// RAnimation.setAnimationListener(new AnimationListener() {
-		//
-		//
-		// public void onAnimationStart(Animation arg0) {
-		//
-		// }
-		//
-		// public void onAnimationRepeat(Animation arg0) {
-		//
-		// }
-		//
-		//
-		// public void onAnimationEnd(Animation arg0) {
-		//
-		// int p=0;
-		// while(p<=1){
-		// if(RAnimation.hasEnded()){
-		// Toast.makeText(getApplicationContext(), "End",
-		// Toast.LENGTH_SHORT).show();
-		// p=2;
-		// }
-		// }
-		//
-		//
-		// Trainplace(85, 170,bmpy1);
-		//
-		// Trainmove(-100);
-		// }
-		// });
-
 	}
 
 	private void buildEffectsMenu() {
@@ -494,125 +431,6 @@ public class KCamera extends Activity {
 		mFrame.removeView(mFl);
 		inMenu = false;
 	}
-
-	// private void showFocusModeMenu() {
-	// inMenu = true;
-	// setContentView(getFocusModeMenu());
-	// }
-
-	// ListView focusModeMenu;
-	// private ListView getFocusModeMenu() {
-	// if (focusModeMenu == null) buildFocusModeMenu();
-	// return focusModeMenu;
-	// }
-
-	// private void buildFocusModeMenu() {
-	// ListView lv = new ListView(this);
-	//
-	// TextView header = new TextView(this);
-	// header.setText(getString(R.string.set_focus_mode));
-	// lv.addHeaderView(header);
-	// final int positionOffset = 1;
-	//
-	// final List<String> focusModes = mCameraPreview.getSupportedFocusModes();
-	// lv.setAdapter(new ArrayAdapter<String>(this,
-	// android.R.layout.simple_list_item_single_choice, focusModes));
-	// lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-	// lv.setItemChecked(mCameraPreview.currentFocusModeIndex()+positionOffset,
-	// true);
-	//
-	// lv.setOnItemClickListener(new OnItemClickListener() {
-	// public void onItemClick(AdapterView<?> parent, View view, int position,
-	// long id) {
-	// mCameraPreview.setFocusMode(focusModes.get(position-positionOffset));
-	// exitMenu();
-	// }
-	// });
-	//
-	// focusModeMenu = lv;
-	// }
-
-	// private void showPreviewSizeMenu() {
-	// inMenu = true;
-	// setContentView(getPreviewSizeMenu());
-	// }
-
-	// private ListView previewSizeMenu;
-	// private ListView getPreviewSizeMenu() {
-	// if (previewSizeMenu == null) buildPreviewSizeMenu();
-	// return previewSizeMenu;
-	// }
-
-	// private void buildPreviewSizeMenu() {
-	// ListView lv = new ListView(this);
-	//
-	// TextView header = new TextView(this);
-	// header.setText(getString(R.string.set_preview_size));
-	// lv.addHeaderView(header);
-	// final int positionOffset = 1;
-	//
-	// final List<Size> previewSizes =
-	// mCameraPreview.getSupportedPreviewSizes();
-	// String[] previewSizeNames = new String[previewSizes.size()];
-	// for (int i = 0; i < previewSizes.size(); i++) {
-	// Size size = previewSizes.get(i);
-	// previewSizeNames[i] = size.width + "x" + size.height;
-	// }
-	// lv.setAdapter(new ArrayAdapter<String>(this,
-	// android.R.layout.simple_list_item_single_choice, previewSizeNames));
-	// lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-	//
-	// int selectedPosition = mCameraPreview.currentPreviewSizeIndex() +
-	// positionOffset;
-	// lv.setItemChecked(selectedPosition, true);
-	// lv.setSelection(selectedPosition);
-	//
-	// lv.setOnItemClickListener(new OnItemClickListener() {
-	// public void onItemClick(AdapterView<?> parent, View view, int position,
-	// long id) {
-	// mCameraPreview.setPreviewSize(previewSizes.get(position-positionOffset));
-	// exitMenu();
-	// }
-	// });
-	//
-	// previewSizeMenu = lv;
-	// }
-
-	// private void showEffectsMenu() {
-	// inMenu = true;
-	// setContentView(getEffectsMenu());
-	// }
-
-	// private ListView mLv;
-	// private ListView getEffectsMenu() {
-	// if (mLv == null) buildEffectsMenu();
-	// return mLv;
-	// }
-
-	// private void buildEffectsMenu() {
-	// ListView lv = new ListView(this);
-	//
-	// TextView header = new TextView(this);
-	// header.setText(getString(R.string.set_preview_processing_mode));
-	// lv.addHeaderView(header);
-	// final int positionOffset = 1;
-	//
-	// lv.setAdapter(new ArrayAdapter<YUVProcessor>(this,
-	// android.R.layout.simple_list_item_single_choice,
-	// YUVProcessor.YUV_PROCESSORS));
-	// lv.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-	// lv.setItemChecked(mKView.currentYUVProcessor()+positionOffset,
-	// true);
-	//
-	// lv.setOnItemClickListener(new OnItemClickListener() {
-	// public void onItemClick(AdapterView<?> parent, View view, int position,
-	// long id) {
-	// mKView.setYUVProcessor(YUVProcessor.YUV_PROCESSORS[position-positionOffset]);
-	// exitMenu();
-	// }
-	// });
-	// mLv = lv;
-	// }
 
 	@Override
 	public void onBackPressed() {

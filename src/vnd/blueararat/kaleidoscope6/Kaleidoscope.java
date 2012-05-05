@@ -14,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -24,40 +25,26 @@ import android.view.MenuItem;
 public class Kaleidoscope extends Activity {
 	SharedPreferences preferences;
 	static final String KEY_IMAGE_URI = "image_uri";
-//	private static final String TAG = "Kaleidoscope";
+	// private static final String TAG = "Kaleidoscope";
 	static final int CHANGE_NUMBER_OF_MIRRORS = 1;
 	private static final int OPEN_PICTURE = 2;
 
 	private int mNumberOfMirrors;
-	// private static float sAngle;
-	// private static float sLocalAngle = 0;
-	// private static int mBitmapNewHeight, mBitmapViewHeight;
-	// private static int sRadius, mBitmapViewWidth, sCenterX, sCenterY,
-	// sScreenRadius;
-	// private static float sScale;
 	private Bitmap mBitmap;// sNewBitmap, sViewBitmap, mBitmap, sExportBitmap;
-	// private static Bitmap sScaledBitmap;
 	private Uri imageUri;
 	private KView mK;
 	private String sStringUri = "";
-
-	// private static int sWidth, sHeight, sScaledHeight, mBitmapWidth,
-	// mBitmapHeight;
-	// private Menu mMenu;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		sStringUri = preferences.getString(KEY_IMAGE_URI, "");
-		// Log.i(TAG,sStringUri);//String.format("%d", mBitmap.getWidth()));
 		Options options = new BitmapFactory.Options();
 		options.inScaled = false;
 		if (sStringUri.length() != 0) {
 			imageUri = Uri.parse(sStringUri);
-			// Log.i(TAG,imageUri.toString());
 			if (fileExists(imageUri)) {
-				// Log.i(TAG, imageUri.toString());
 				try {
 					mBitmap = MediaStore.Images.Media.getBitmap(
 							this.getContentResolver(), imageUri);
@@ -78,17 +65,12 @@ public class Kaleidoscope extends Activity {
 			// logHeap(this.getClass());
 			mK = new KView(this, mBitmap);
 		} catch (OutOfMemoryError e) {
-			// logHeap(this.getClass());
 			mK = null;
 			mBitmap = null;
 			System.gc();
 			loadDefaultBitmap(options);
 			mK = new KView(this, mBitmap);
 		}
-		// } finally {
-		// // get ready to be fired by your boss
-		// }
-		// mK = new KaleidoscopeView(this, mBitmap);
 		mNumberOfMirrors = mK.getNumberOfMirrors();
 		setContentView(mK);
 	}
@@ -123,8 +105,6 @@ public class Kaleidoscope extends Activity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		// For "Title only": Examples of matching an ID with one assigned in
-		// the XML
 		case R.id.settings:
 			Intent intent = new Intent(this, Prefs.class);
 			startActivityForResult(intent, CHANGE_NUMBER_OF_MIRRORS);
@@ -136,48 +116,33 @@ public class Kaleidoscope extends Activity {
 			intent2.setAction(Intent.ACTION_GET_CONTENT);
 			startActivityForResult(Intent.createChooser(intent2,
 					getString(R.string.open_picture)), OPEN_PICTURE);
-			// Intent intent2 = new Intent(this, GetImageActivity.class);
-			// startActivityForResult(intent2, OPEN_PICTURE);
-			//Toast.makeText(this, "open", Toast.LENGTH_SHORT).show();
-
 			return true;
 
-			// For "Groups": Toggle visibility of grouped menu items with
-			// nongrouped menu items
 		case R.id.camera:
-			// Toast.makeText(this, "camera", Toast.LENGTH_SHORT).show();
 			Intent intent3 = new Intent(this, KCamera.class);
-			// Intent intent4 = getIntent();
 			finish();
 			startActivity(intent3);
 			return true;
 
 		case R.id.export:
-			export();
+			new Export().execute();
 			return true;
-
-			// // Generic catch all for all the other menu resources
-			// default:
-			// // Don't toast text when a submenu is clicked
-			// if (!item.hasSubMenu()) {
-			// Toast.makeText(this, item.getTitle(), Toast.LENGTH_SHORT)
-			// .show();
-			// return true;
-			// }
-			// break;
 		}
 
 		return false;
 	}
 
-	private void export() {
-		this.runOnUiThread(new Runnable() {
+	private class Export extends AsyncTask<String, Void, String> {
 
-			@Override
-			public void run() {
-				mK.exportImage();
-			}
-		});
+		@Override
+		protected String doInBackground(String... params) {
+			return mK.exportImage();
+		}
+
+		@Override
+		protected void onPostExecute(String result) {
+			mK.toastString(result);
+		}
 	}
 
 	@Override
@@ -191,9 +156,6 @@ public class Kaleidoscope extends Activity {
 				Editor et = preferences.edit();
 				et.putString(KEY_IMAGE_URI, sStringUri);
 				et.commit();
-				// mBitmap =
-				// MediaStore.Images.Media.getBitmap(this.getContentResolver(),
-				// imageUri);
 				Intent it = getIntent();
 				finish();
 				startActivity(it);
@@ -234,9 +196,9 @@ public class Kaleidoscope extends Activity {
 			return false;
 		}
 		if (new File(filePath).exists()) {
-			return true; // do something if it exists
+			return true;
 		} else {
-			return false;// File was not found
+			return false;
 		}
 	}
 
@@ -248,52 +210,4 @@ public class Kaleidoscope extends Activity {
 		cursor.moveToFirst();
 		return cursor.getString(column_index);
 	}
-
-	// public void logHeap(Class clazz) {
-	// Double allocated = new Double(Debug.getNativeHeapAllocatedSize())
-	// / new Double((1048576));
-	// Double available = new Double(Debug.getNativeHeapSize() / 1048576.0);
-	// Double free = new Double(Debug.getNativeHeapFreeSize() / 1048576.0);
-	// DecimalFormat df = new DecimalFormat();
-	// df.setMaximumFractionDigits(2);
-	// df.setMinimumFractionDigits(2);
-	//
-	// Log.d(TAG, "debug. =================================");
-	// Log.d(TAG,
-	// "debug.heap native: allocated " + df.format(allocated)
-	// + "MB of " + df.format(available) + "MB ("
-	// + df.format(free) + "MB free) in ["
-	// + clazz.getName().replaceAll("com.myapp.android.", "")
-	// + "]");
-	// Log.d(TAG,
-	// "debug.memory: allocated: "
-	// + df.format(new Double(Runtime.getRuntime()
-	// .totalMemory() / 1048576))
-	// + "MB of "
-	// + df.format(new Double(
-	// Runtime.getRuntime().maxMemory() / 1048576))
-	// + "MB ("
-	// + df.format(new Double(Runtime.getRuntime()
-	// .freeMemory() / 1048576)) + "MB free)");
-	// Toast.makeText(this, "debug.memory: allocated: "
-	// + df.format(new Double(Runtime.getRuntime()
-	// .totalMemory() / 1048576))
-	// + "MB of "
-	// + df.format(new Double(
-	// Runtime.getRuntime().maxMemory() / 1048576))
-	// + "MB ("
-	// + df.format(new Double(Runtime.getRuntime()
-	// .freeMemory() / 1048576)) + "MB free)", Toast.LENGTH_LONG).show();
-	// // Log.d(TAG, Long.toString(Runtime.getRuntime().maxMemory()));
-	// // System.gc();
-	// // System.gc();
-	//
-	// // don't need to add the following lines, it's just an app specific
-	// // handling in my app
-	// if (allocated >= (new Double(Runtime.getRuntime().maxMemory()) / new
-	// Double(
-	// (1048576)))) { // -MEMORY_BUFFER_LIMIT_FOR_RESTART
-	// android.os.Process.killProcess(android.os.Process.myPid());
-	// }
-	// }
 }
