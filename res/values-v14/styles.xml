@@ -9,7 +9,7 @@
         <item name="android:keepScreenOn">true</item>
     </style>
 
-    <style name="DefaultTheme" parent="android:Theme.NoTitleBar.Fullscreen">
+    <style name="DefaultTheme" parent="android:Theme.DeviceDefault.NoActionBar.Fullscreen">
     </style>
 
     <style name="RadioButton" parent="@android:style/Widget.CompoundButton.RadioButton">

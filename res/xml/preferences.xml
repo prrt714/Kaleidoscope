@@ -28,7 +28,7 @@
     <PreferenceCategory android:title="@string/kp2cat_save" >
         <ListPreference
             android:defaultValue="@string/default_save_format"
-            android:dialogTitle="Choose format"
+            android:dialogTitle="@string/choose_format"
             android:entries="@array/entries_list_preference"
             android:entryValues="@array/entryvalues_list_preference"
             android:key="format"

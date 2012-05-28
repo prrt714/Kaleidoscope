@@ -29,5 +29,6 @@
     <string name="pictures_will_be_saved">Pictures will be saved as</string>
     <string name="kp_blur">Blur</string>
     <string name="kp_blur_value">Blur Value</string>
+    <string name="choose_format">Picture Format</string>
 
 </resources>

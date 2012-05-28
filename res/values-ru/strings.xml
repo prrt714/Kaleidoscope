@@ -29,5 +29,6 @@
     <string name="pictures_will_be_saved">Картинки будут сохранены как</string>
     <string name="kp_blur">Размытие</string>
     <string name="kp_blur_value">Величина размытия</string>
+    <string name="choose_format">Формат картинки</string>
 
 </resources>

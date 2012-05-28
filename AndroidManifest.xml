@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="vnd.blueararat.kaleidoscope6"
     android:installLocation="preferExternal"
-    android:versionCode="5"
-    android:versionName="1.0.4" >
+    android:versionCode="6"
+    android:versionName="1.0.5" >
 
     <uses-sdk android:minSdkVersion="10" />
 
@@ -20,14 +20,14 @@
         <activity
             android:name=".Kaleidoscope"
             android:label="@string/app_name"
-            android:launchMode="singleTop" >
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="Prefs" >
+        <activity android:name="Prefs" android:theme="@style/DefaultTheme">
         </activity>
         <activity
             android:name=".KCamera"
