@@ -30,5 +30,13 @@
     <string name="kp_blur">Размытие</string>
     <string name="kp_blur_value">Величина размытия</string>
     <string name="choose_format">Формат картинки</string>
+    <string name="save_location">Папка для картинок</string>
+    <string name="cant_read_folder">не могу просмотреть папку!</string>
+    <string name="nnew">Новая</string>
+    <string name="select">Готово</string>
+    <string name="file_name">Имя папки</string>
+    <string name="cancel">Отмени</string>
+    <string name="create">Сохрани</string>
+    <string name="no_data">Нет данных</string>
 
 </resources>

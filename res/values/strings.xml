@@ -30,5 +30,13 @@
     <string name="kp_blur">Blur</string>
     <string name="kp_blur_value">Blur Value</string>
     <string name="choose_format">Picture Format</string>
+    <string name="save_location">Save Folder</string>
+    <string name="cant_read_folder">folder can\'t be read!</string>
+    <string name="nnew">New</string>
+    <string name="select">Finish</string>
+    <string name="file_name">Folder Name</string>
+    <string name="cancel">Cancel</string>
+    <string name="create">Save</string>
+    <string name="no_data">No Data</string>
 
 </resources>

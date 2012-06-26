@@ -281,19 +281,20 @@ public class KView extends View implements Camera.PreviewCallback {
 		// MediaStore.Images.Media.insertImage(getContentResolver(), bm,
 		// barcodeNumber + ".jpg Card Image", barcodeNumber
 		// + ".jpg Card Image");
-		String path = Environment.getExternalStoragePublicDirectory(
-				Environment.DIRECTORY_PICTURES).toString();
-		// Toast.makeText(mContext,
-		// mContext.getString(R.string.png_save_name),
-		// Toast.LENGTH_LONG).show();
-		// Toast.makeText(mContext, path+"--2", Toast.LENGTH_LONG).show();
-
+		String path = preferences.getString(Prefs.KEY_FOLDER, "");
+		if (path.equals("")) {
+			path = Environment.getExternalStoragePublicDirectory(
+					Environment.DIRECTORY_PICTURES).toString();
+		}
+		File directory = new File(path, "Kaleidoscope");
+		directory.mkdirs();
+		//File directory = new File(path);
+		
 		// MediaStore.Images.Media.insertImage(null, mBitmap2, null, null);
 		SimpleDateFormat s = new SimpleDateFormat("MMddmmss");
 		String stamp = s.format(new Date());
 		// Log.d(TAG, stamp);
-		File directory = new File(path, "Kaleidoscope");
-		directory.mkdirs();
+
 		File file = new File(directory,
 				mContext.getString(R.string.png_save_name) + stamp + ext);
 		// Log.d(TAG, file.toString());

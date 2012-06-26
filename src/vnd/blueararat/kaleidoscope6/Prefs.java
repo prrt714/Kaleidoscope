@@ -1,22 +1,31 @@
 package vnd.blueararat.kaleidoscope6;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
+import android.preference.Preference;
+import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.view.View;
 
 public class Prefs extends PreferenceActivity implements
 		OnSharedPreferenceChangeListener {
+
+	static final String KEY_FOLDER = "save_location";
+	static final int SELECT_FOLDER = 4;
 	private SeekbarPref mSeekbarPrefM;
 	private SeekbarPref mSeekbarPrefJ;
 	private ListPreference mSaveFormat;
 	private SeekbarPref mSeekbarPrefB;
 	private CheckBoxPreference mCheckBoxPreference;
+	private FolderPref mPrefSaveLocation;
+	private String mDefaultSaveLocation;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -35,6 +44,35 @@ public class Prefs extends PreferenceActivity implements
 		mSaveFormat.setSummary(getString(R.string.pictures_will_be_saved) + " "
 				+ mSaveFormat.getValue());
 		mSeekbarPrefJ.setEnabled(mSaveFormat.getValue().equals("JPEG"));
+		mPrefSaveLocation = (FolderPref) getPreferenceScreen().findPreference(
+				"save_location");
+		mDefaultSaveLocation = Environment.getExternalStoragePublicDirectory(
+				Environment.DIRECTORY_PICTURES).toString();
+		mPrefSaveLocation.setDefaultValue(mDefaultSaveLocation);
+		mPrefSaveLocation
+				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+					@Override
+					public boolean onPreferenceClick(Preference preference) {
+						Intent intent = new Intent(getBaseContext(),
+								FileDialog.class);
+						intent.putExtra(FileDialog.START_PATH, "/sdcard");
+						intent.putExtra(FileDialog.CAN_SELECT_DIR, true);
+						startActivityForResult(intent, SELECT_FOLDER);
+						return true;
+					}
+				});
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if (requestCode == SELECT_FOLDER) {
+			if (resultCode == RESULT_OK) {
+				String sFolder = data.getStringExtra(FileDialog.RESULT_PATH);
+				mPrefSaveLocation.setString(sFolder);
+			}
+		}
 	}
 
 	@Override
@@ -80,6 +118,7 @@ public class Prefs extends PreferenceActivity implements
 		mSaveFormat.setValue(getString(R.string.default_save_format));
 		mSeekbarPrefB.setProgressValue(49);
 		mCheckBoxPreference.setChecked(true);
+		mPrefSaveLocation.reset();
 	}
 
 	// @Override
