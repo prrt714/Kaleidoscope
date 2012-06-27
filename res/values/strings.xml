@@ -38,5 +38,7 @@
     <string name="cancel">Cancel</string>
     <string name="create">Save</string>
     <string name="no_data">No Data</string>
+    <string name="cant_save_picture_to">Can\'t save picture to</string>
+    <string name="please_change_folder">\nPlease, choose another folder in the preferences.</string>
 
 </resources>

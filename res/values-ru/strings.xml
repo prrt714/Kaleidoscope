@@ -38,5 +38,7 @@
     <string name="cancel">Отмени</string>
     <string name="create">Сохрани</string>
     <string name="no_data">Нет данных</string>
+    <string name="cant_save_picture_to">Не могу сохранить картинку в</string>
+    <string name="please_change_folder">\nПожалуйста, выбери другую папку в настройках.</string>
 
 </resources>

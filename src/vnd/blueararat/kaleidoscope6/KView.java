@@ -64,7 +64,7 @@ public class KView extends View implements Camera.PreviewCallback {
 	// private KaleidoscopeView k;
 	// private String mStringUri = "";
 	private int sWidth, sHeight;
-	private int mScaledHeight, mBitmapWidth, mBitmapHeight;
+	private int mScaledHeight, mScaledWidth, mBitmapWidth, mBitmapHeight;
 	private int mX, mY;
 	// private float startX, startY;
 	private float sX1, sY1, sD, sMx, sMy;
@@ -82,7 +82,7 @@ public class KView extends View implements Camera.PreviewCallback {
 	// private Bitmap , mViewBitmap;
 	// public int mNumberOfMirrors = super.mNumberOfMirrors;
 	private int mCurX, mCurY;
-	private float mStartAngle = 0;
+	private static final float mStartAngle = 0;
 	// private float mdX = 1;
 	// private float mdY = 1;
 	// private float mF;
@@ -263,7 +263,7 @@ public class KView extends View implements Camera.PreviewCallback {
 					Bitmap.Config.ARGB_8888);
 			// Bitmap bm = rotatedBitmap(mLocalAngle, mBitmap);
 			drawIntoBitmap(newBitmap, mBitmap, mCurX, mCurY);
-			x = mBitmapWidth;
+			x = mRadius * 2;
 			rad = mRadius;
 		} else {
 			x = mBitmapViewWidth * 2;
@@ -288,8 +288,8 @@ public class KView extends View implements Camera.PreviewCallback {
 		}
 		File directory = new File(path, "Kaleidoscope");
 		directory.mkdirs();
-		//File directory = new File(path);
-		
+		// File directory = new File(path);
+
 		// MediaStore.Images.Media.insertImage(null, mBitmap2, null, null);
 		SimpleDateFormat s = new SimpleDateFormat("MMddmmss");
 		String stamp = s.format(new Date());
@@ -324,9 +324,16 @@ public class KView extends View implements Camera.PreviewCallback {
 
 		byteArray = null;
 		System.gc();
-		return mContext.getString(R.string.picture_saved_to) + " "
-				+ file.toString();
-
+		String toast1;
+		if (file.exists()) {
+			toast1 = mContext.getString(R.string.picture_saved_to) + " "
+					+ file.toString();
+		} else {
+			toast1 = mContext.getString(R.string.cant_save_picture_to) + " "
+					+ file.toString()
+					+ mContext.getString(R.string.please_change_folder);
+		}
+		return toast1;
 	}
 
 	void toastString(String s) {
@@ -339,10 +346,11 @@ public class KView extends View implements Camera.PreviewCallback {
 				* Math.sin(Math.PI / (double) mNumberOfMirrors));
 		mScale = (float) mBitmapViewWidth / mRadius;
 		mScaledHeight = (int) (mScale * mBitmapHeight);
+		mScaledWidth = (int) (mScale * mBitmapWidth);
 		mAlphaMark = false;
 		mViewBitmap = Bitmap.createBitmap(mBitmapViewWidth, mBitmapViewHeight,
 				Bitmap.Config.ARGB_8888);
-		mX = mBitmapViewWidth;
+		mX = mScaledWidth - mBitmapViewWidth;
 		mY = mScaledHeight - mBitmapViewHeight;
 	}
 
@@ -353,15 +361,21 @@ public class KView extends View implements Camera.PreviewCallback {
 		mRadius = (int) (mBitmapWidth / 2);
 		mBitmapNewHeight = (int) Math.round((double) mRadius
 				* Math.sin(Math.PI / (double) mNumberOfMirrors));
+		if (mBitmapNewHeight > mBitmapHeight) {
+			mBitmapNewHeight = mBitmapHeight / 2;
+			mRadius = (int) Math.round((double) mBitmapNewHeight
+					/ Math.sin(Math.PI / (double) mNumberOfMirrors));
+		}
 		mScale = (float) mBitmapViewWidth / mRadius;
 		// Log.i(TAG,String.format("%d", mBitmapViewWidth));
 		mBitmapViewHeight = Math.round((float) mBitmapNewHeight * mScale);
 		mScaledHeight = (int) (mScale * mBitmapHeight);
+		mScaledWidth = (int) (mScale * mBitmapWidth);
 		// Log.i(TAG,String.format("%d %d", mRadius, mBitmapNewHeight));
 		mAlphaMark = false;
 		mViewBitmap = Bitmap.createBitmap(mBitmapViewWidth, mBitmapViewHeight,
 				Bitmap.Config.ARGB_8888);
-		mX = mBitmapViewWidth;
+		mX = mScaledWidth - mBitmapViewWidth;
 		mY = mScaledHeight - mBitmapViewHeight;
 		mCurX = (int) (Math.random() * mX / mScale);
 		mCurY = (int) (Math.random() * mY / mScale);
@@ -536,11 +550,17 @@ public class KView extends View implements Camera.PreviewCallback {
 		mBitmapWidth = width;
 		mBitmapHeight = height;
 		mRadius = (int) (mBitmapWidth / 2);
-		mScale = (float) mBitmapViewWidth / mRadius;
 		mBitmapNewHeight = (int) ((double) mRadius * Math.sin(Math.PI
 				/ (double) mNumberOfMirrors));
+		if (mBitmapNewHeight > mBitmapHeight) {
+			mBitmapNewHeight = mBitmapHeight / 2;
+			mRadius = (int) Math.round((double) mBitmapNewHeight
+					/ Math.sin(Math.PI / (double) mNumberOfMirrors));
+		}
+		mScale = (float) mBitmapViewWidth / mRadius;
+		mScaledWidth = (int) (mScale * mBitmapWidth);
 		mScaledHeight = (int) (mScale * mBitmapHeight);
-		mX = mBitmapViewWidth;
+		mX = mScaledWidth - mBitmapViewWidth;
 		mY = mScaledHeight - mBitmapViewHeight;
 		mCurX = (int) (Math.random() * mX / mScale);
 		mCurY = (int) (Math.random() * mY / mScale);

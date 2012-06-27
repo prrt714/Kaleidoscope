@@ -16,7 +16,6 @@
             android:id="@+id/fdLinearLayoutSelect"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:orientation="vertical"
             android:paddingBottom="5dp"
             android:paddingLeft="10dp"
@@ -51,7 +50,6 @@
             android:id="@+id/fdLinearLayoutCreate"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:orientation="vertical"
             android:paddingBottom="5dip"
             android:paddingLeft="10dip"
@@ -67,6 +65,7 @@
                 android:id="@+id/fdEditTextFile"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:inputType="textUri"
                 android:text="" >
             </EditText>
 
@@ -108,11 +107,13 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceMedium"
             android:textColor="#7777FF" />
-        
-        <!--             android:shadowColor="#777777"
+
+        <!--
+                         android:shadowColor="#777777"
             android:shadowDx="0.0"
             android:shadowDy="0.0"
-            android:shadowRadius="1" -->
+            android:shadowRadius="1"
+        -->
 
         <ListView
             android:id="@android:id/list"
