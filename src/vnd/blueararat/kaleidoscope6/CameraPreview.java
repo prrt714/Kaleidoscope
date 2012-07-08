@@ -15,7 +15,7 @@ import android.view.SurfaceView;
 class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 	private final SurfaceHolder mHolder;
 	private Camera mCamera;
-	private final KView mKView;
+	private KView mKView;
 	private int previewWidth, previewHeight;
 	Camera.Parameters mParameters;
 	private static String sCameraEffect = Camera.Parameters.EFFECT_NONE;
@@ -66,6 +66,10 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		mCamera.stopPreview();
 		mCamera.release();
 		mCamera = null;
+		mKView.destroy();
+		mKView = null;
+		System.gc();
+		System.gc();
 	}
 
 	void setPreviewSize(Size previewSize) {
@@ -221,7 +225,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
 			@Override
 			protected void onPostExecute(String result) {
-				mKView.toastString(result);
+				mKView.toastString(result, 1);
 			}
 		}).execute();
 	}

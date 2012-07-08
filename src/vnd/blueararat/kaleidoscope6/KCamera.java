@@ -50,7 +50,7 @@ public class KCamera extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		Memory.setReqSize(0);
 		// Bitmap bitmap = Bitmap.createBitmap(640, 480,
 		// Bitmap.Config.ARGB_8888);
 		Options options = new BitmapFactory.Options();
@@ -441,7 +441,7 @@ public class KCamera extends Activity {
 			startActivity(new Intent(this, Kaleidoscope.class));
 		}
 	}
-
+	
 	// private void exitMenu() {
 	// setContentView(mFrame);
 	// inMenu = false;

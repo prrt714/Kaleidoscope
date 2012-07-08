@@ -3,6 +3,7 @@ package vnd.blueararat.kaleidoscope6;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -21,6 +22,7 @@ import android.provider.MediaStore;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class Kaleidoscope extends Activity {
 	SharedPreferences preferences;
@@ -45,39 +47,112 @@ public class Kaleidoscope extends Activity {
 		if (sStringUri.length() != 0) {
 			imageUri = Uri.parse(sStringUri);
 			if (fileExists(imageUri)) {
-				try {
-					mBitmap = MediaStore.Images.Media.getBitmap(
-							this.getContentResolver(), imageUri);
-				} catch (FileNotFoundException e) {
-					loadDefaultBitmap(options);
-					e.printStackTrace();
-				} catch (IOException e) {
-					loadDefaultBitmap(options);
-					e.printStackTrace();
-				}
+				loadBitmap(options, imageUri);
 			} else {
-				loadDefaultBitmap(options);
+				loadBitmap(options, null);
 			}
 		} else {
-			loadDefaultBitmap(options);
+			loadBitmap(options, null);
 		}
-		try {
-			// logHeap(this.getClass());
-			mK = new KView(this, mBitmap);
-		} catch (OutOfMemoryError e) {
-			mK = null;
-			mBitmap = null;
-			System.gc();
-			loadDefaultBitmap(options);
-			mK = new KView(this, mBitmap);
-		}
+		mK = new KView(this, mBitmap);
 		mNumberOfMirrors = mK.getNumberOfMirrors();
 		setContentView(mK);
 	}
 
-	private void loadDefaultBitmap(Options options) {
-		mBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.img2,
-				options);
+	private void loadBitmap(Options options, Uri uri) {
+		Options opts = new Options();
+		opts.inScaled = false;
+		opts.inJustDecodeBounds = true;
+		InputStream input;
+		if (uri == null) {
+			BitmapFactory.decodeResource(getResources(), R.drawable.img2, opts);
+		} else {
+			try {
+				input = this.getContentResolver().openInputStream(uri);
+				BitmapFactory.decodeStream(input, null, opts);
+				input.close();
+			} catch (FileNotFoundException e) {
+				opts = null;
+				loadBitmap(options, null);
+				return;
+			} catch (IOException e) {
+				opts = null;
+				loadBitmap(options, null);
+				return;
+			}
+
+			if ((opts.outWidth == -1) || (opts.outHeight == -1)) {
+				opts = null;
+				loadBitmap(options, null);
+				return;
+			}
+		}
+		boolean b = Memory.checkBitmapFitsInMemory(opts);
+		if (b) {
+			if (uri == null) {
+				mBitmap = BitmapFactory.decodeResource(getResources(),
+						R.drawable.img2, options);
+				return;
+			} else {
+				try {
+					input = this.getContentResolver().openInputStream(uri);
+					mBitmap = BitmapFactory.decodeStream(input, null, options);
+					input.close();
+					// mBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+					return;
+				} catch (FileNotFoundException e) {
+					opts = null;
+					loadBitmap(options, null);
+					return;
+				} catch (IOException e) {
+					opts = null;
+					loadBitmap(options, null);
+					return;
+				} catch (OutOfMemoryError e) {
+					b = false;
+				}
+			}
+		}
+		if (!b) {
+			// opts.inPreferredConfig = Bitmap.Config.RGB_565;
+			opts.inSampleSize = 1;
+			while (!b) {
+				opts.inSampleSize += 1;
+				if (uri == null) {
+					BitmapFactory.decodeResource(getResources(),
+							R.drawable.img2, opts);
+				} else {
+					try {
+						input = this.getContentResolver().openInputStream(uri);
+						BitmapFactory.decodeStream(input, null, opts);
+						input.close();
+					} catch (FileNotFoundException e) {
+					} catch (IOException e) {
+					}
+				}
+				b = Memory.checkBitmapFitsInMemory(opts);
+			}
+			opts.inJustDecodeBounds = false;
+			if (uri == null) {
+				mBitmap = BitmapFactory.decodeResource(getResources(),
+						R.drawable.img2, opts);
+			} else {
+				try {
+					input = this.getContentResolver().openInputStream(uri);
+					mBitmap = BitmapFactory.decodeStream(input, null, opts);
+					input.close();
+				} catch (FileNotFoundException e) {
+				} catch (IOException e) {
+				}
+			}
+			Toast.makeText(
+					this,
+					getString(R.string.picture_was_too_large) + " "
+							+ opts.inSampleSize + " "
+							+ getString(R.string.times), Toast.LENGTH_LONG)
+					.show();
+		}
+		System.gc();
 	}
 
 	// @Override
@@ -91,6 +166,16 @@ public class Kaleidoscope extends Activity {
 	// super.onPause();
 	// mK.onPauseKSurfaceView();
 	// }
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		mBitmap.recycle();
+		mK.destroy();
+		mK = null;
+		System.gc();
+		System.gc();
+	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -141,7 +226,7 @@ public class Kaleidoscope extends Activity {
 
 		@Override
 		protected void onPostExecute(String result) {
-			mK.toastString(result);
+			mK.toastString(result, Toast.LENGTH_LONG);
 		}
 	}
 

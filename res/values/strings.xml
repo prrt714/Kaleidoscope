@@ -40,5 +40,8 @@
     <string name="no_data">No Data</string>
     <string name="cant_save_picture_to">Can\'t save picture to</string>
     <string name="please_change_folder">\nPlease, choose another folder in the preferences.</string>
+    <string name="cant_zoom_in">Can\'t zoom in. Memory is used up.</string>
+    <string name="picture_was_too_large">The picture was too large and therefore scaled down</string>
+    <string name="times">times.</string>
 
 </resources>

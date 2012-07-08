@@ -72,6 +72,7 @@ public class KView extends View implements Camera.PreviewCallback {
 	boolean mBlur;
 	boolean mAlphaMark = false;
 	int mBlurVal;
+	private boolean msgNextTime = true;
 
 	// private int mFormat = 0;
 	// private Menu mMenu;
@@ -122,11 +123,6 @@ public class KView extends View implements Camera.PreviewCallback {
 		} else {
 			mBlurVal = -1;
 		}
-		// Toast.makeText(mContext, "Blur: " + Integer.toString(mBlurVal),
-		// Toast.LENGTH_LONG).show();
-
-		// Toast.makeText(mContext, context.getClass().getSimpleName(),
-		// Toast.LENGTH_LONG).show();
 
 		// mStartAngle = mAngle;
 		// mPaint.setAntiAlias(true);
@@ -141,10 +137,8 @@ public class KView extends View implements Camera.PreviewCallback {
 		mCenterX = mBitmapViewWidth;
 		mCenterY = sHeight / 2;
 		mScreenRadius = Math.min(mBitmapViewWidth, sHeight / 2);
-		// Log.i(TAG,String.format("%d %d", mBitmap.getWidth(),
 		// mBitmap.getHeight()));
 		setBitmap(bitmap);
-		// Log.i(TAG,String.format("%d", mCurX));
 		drawIntoBitmap();
 	}
 
@@ -256,15 +250,16 @@ public class KView extends View implements Camera.PreviewCallback {
 			// .show();
 		}
 
-		int x, rad;
+		int x, rad, factor;
 		Bitmap newBitmap = mViewBitmap;
 		if (!mBlur) {
-			newBitmap = Bitmap.createBitmap(mRadius, mBitmapNewHeight,
-					Bitmap.Config.ARGB_8888);
+			factor = Memory.factor();
+			newBitmap = Bitmap.createBitmap(mRadius / factor, mBitmapNewHeight
+					/ factor, Bitmap.Config.ARGB_8888);
 			// Bitmap bm = rotatedBitmap(mLocalAngle, mBitmap);
 			drawIntoBitmap(newBitmap, mBitmap, mCurX, mCurY);
-			x = mRadius * 2;
-			rad = mRadius;
+			x = mRadius * 2 / factor;
+			rad = mRadius / factor;
 		} else {
 			x = mBitmapViewWidth * 2;
 			rad = mBitmapViewWidth;
@@ -276,11 +271,7 @@ public class KView extends View implements Camera.PreviewCallback {
 		if (!mBlur)
 			newBitmap.recycle();
 		System.gc();
-		// TODO
-		// exportBitmap.
-		// MediaStore.Images.Media.insertImage(getContentResolver(), bm,
-		// barcodeNumber + ".jpg Card Image", barcodeNumber
-		// + ".jpg Card Image");
+
 		String path = preferences.getString(Prefs.KEY_FOLDER, "");
 		if (path.equals("")) {
 			path = Environment.getExternalStoragePublicDirectory(
@@ -293,12 +284,9 @@ public class KView extends View implements Camera.PreviewCallback {
 		// MediaStore.Images.Media.insertImage(null, mBitmap2, null, null);
 		SimpleDateFormat s = new SimpleDateFormat("MMddmmss");
 		String stamp = s.format(new Date());
-		// Log.d(TAG, stamp);
 
 		File file = new File(directory,
 				mContext.getString(R.string.png_save_name) + stamp + ext);
-		// Log.d(TAG, file.toString());
-		// String filepath = file.toString();
 
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		exportBitmap.compress(cf, q, stream);
@@ -330,28 +318,36 @@ public class KView extends View implements Camera.PreviewCallback {
 					+ file.toString();
 		} else {
 			toast1 = mContext.getString(R.string.cant_save_picture_to) + " "
-					+ file.toString()
+					+ directory.toString()
 					+ mContext.getString(R.string.please_change_folder);
 		}
 		return toast1;
 	}
 
-	void toastString(String s) {
-		Toast.makeText(mContext, s, Toast.LENGTH_LONG).show();
+	void toastString(String s, int duration) {
+		Toast.makeText(mContext, s, duration).show();
 	}
 
 	public void setViewBitmapSizes(int width) {
-		mBitmapViewWidth = width;
-		mBitmapViewHeight = (int) Math.round((double) width
-				* Math.sin(Math.PI / (double) mNumberOfMirrors));
-		mScale = (float) mBitmapViewWidth / mRadius;
-		mScaledHeight = (int) (mScale * mBitmapHeight);
-		mScaledWidth = (int) (mScale * mBitmapWidth);
-		mAlphaMark = false;
-		mViewBitmap = Bitmap.createBitmap(mBitmapViewWidth, mBitmapViewHeight,
-				Bitmap.Config.ARGB_8888);
-		mX = mScaledWidth - mBitmapViewWidth;
-		mY = mScaledHeight - mBitmapViewHeight;
+		int diam = 2 * width;
+		if (Memory.checkBitmapFitsInMemory(diam, diam)) {
+			mBitmapViewWidth = width;
+			mBitmapViewHeight = (int) Math.round((double) width
+					* Math.sin(Math.PI / (double) mNumberOfMirrors));
+			mScale = (float) mBitmapViewWidth / mRadius;
+			mScaledHeight = (int) (mScale * mBitmapHeight);
+			mScaledWidth = (int) (mScale * mBitmapWidth);
+			mAlphaMark = false;
+			mViewBitmap = Bitmap.createBitmap(mBitmapViewWidth,
+					mBitmapViewHeight, Bitmap.Config.ARGB_8888);
+			mX = mScaledWidth - mBitmapViewWidth;
+			mY = mScaledHeight - mBitmapViewHeight;
+			msgNextTime = true;
+		} else if (msgNextTime) {
+			toastString(mContext.getString(R.string.cant_zoom_in),
+					Toast.LENGTH_SHORT);
+			msgNextTime = false;
+		}
 	}
 
 	public void setBitmap(Bitmap bitmap) {
@@ -582,7 +578,7 @@ public class KView extends View implements Camera.PreviewCallback {
 			if (yp == mYUVProcessor)
 				return i;
 		}
-		throw new Error("This should never happen");
+		throw new Error("");
 	}
 
 	@Override
@@ -633,46 +629,12 @@ public class KView extends View implements Camera.PreviewCallback {
 		return offset;
 	}
 
-	// @Override
-	// public void onPictureTaken(byte[] data, Camera camera) {
-	// //int[] rgb = new int[mPictureWidth * mPictureHeight];
-	// exportImage(1);
-	// // if (data == null) return;
-	// // // baos = new ByteArrayOutputStream();
-	// // // yuvimage = new YuvImage(data, ImageFormat.NV21, sWidth, sHeight,
-	// // // null);
-	// //
-	// // // yuvimage.compressToJpeg(new Rect(0, 0, sWidth, sHeight), 80, baos);
-	// // // // width
-	// // // and
-	// // // height
-	// // // of
-	// // // the
-	// // // screen
-	// // // jdata = baos.toByteArray();
-	// //
-	// // // Bitmap bmp = BitmapFactory.decodeByteArray(jdata, 0, jdata.length);
-	// // mYUVProcessor.processYUV420SP(rgb, data, mPictureWidth,
-	// mPictureHeight);
-	// // Bitmap bmp = Bitmap.createBitmap(rgb, mPictureWidth, mPictureHeight,
-	// // Bitmap.Config.ARGB_8888);
-	// // // setBitmap(bmp, 0);
-	// // // n++;
-	// // // if (n == 10) {
-	// // // debugString = Double
-	// // // .toString(10000 / (System.currentTimeMillis() - lastFrame))
-	// // // + " FPS";
-	// // // lastFrame = System.currentTimeMillis();
-	// // // n = 0;
-	// // // }
-	// // // drawIntoBitmap(0);
-	// // exportImage(bmp);
-	// // // Log.i(TAG, String.format("%d", bmp.getWidth()));
-	// // // invalidate();
-	// // // camera.addCallbackBuffer(data);
-	// //
-	// // Toast.makeText(mContext, "pictureTaken", Toast.LENGTH_SHORT).show();
-	// }
+	void destroy() {
+		mViewBitmap.recycle();
+		mBitmap.recycle();
+		System.gc();
+		System.gc();
+	}
 
 	// public void reset(Size previewImageSize) {
 	// processing = false;

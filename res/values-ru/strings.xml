@@ -40,5 +40,8 @@
     <string name="no_data">Нет данных</string>
     <string name="cant_save_picture_to">Не могу сохранить картинку в</string>
     <string name="please_change_folder">\nПожалуйста, выбери другую папку в настройках.</string>
+    <string name="cant_zoom_in">Не могу больше увеличивать. Память заканчивается.</string>
+    <string name="picture_was_too_large">Картинка была слишком велика и поэтому уменьшена в</string>
+    <string name="times">раза.</string>
 
 </resources>
