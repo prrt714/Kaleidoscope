@@ -20,7 +20,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 	Camera.Parameters mParameters;
 	private static String sCameraEffect = Camera.Parameters.EFFECT_NONE;
 	private int numberOfCameras;
-	int cameraCurrentlyLocked;
+	int cameraCurrentlyLocked = -1;
 	int defaultCameraId;
 	private int bufsize;
 
@@ -53,8 +53,10 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
-		mCamera = Camera.open();
-		cameraCurrentlyLocked = defaultCameraId;
+		if (cameraCurrentlyLocked == -1) {
+			cameraCurrentlyLocked = defaultCameraId;
+		}
+		mCamera = Camera.open(cameraCurrentlyLocked);
 		mParameters = mCamera.getParameters();
 
 		guessPreviewSize();
@@ -66,10 +68,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		mCamera.stopPreview();
 		mCamera.release();
 		mCamera = null;
-		mKView.destroy();
-		mKView = null;
-		System.gc();
-		System.gc();
 	}
 
 	void setPreviewSize(Size previewSize) {
