@@ -1,7 +1,9 @@
 package vnd.blueararat.kaleidoscope6;
 
+import java.io.IOException;
 import java.util.List;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
@@ -9,6 +11,7 @@ import android.hardware.Camera.AutoFocusCallback;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Size;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -23,13 +26,22 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 	int cameraCurrentlyLocked = -1;
 	int defaultCameraId;
 	private int bufsize;
+	private boolean sdk11plus = true;
 
 	CameraPreview(Context context, KView kaleidoscopeView) {
 		super(context);
 
 		mHolder = getHolder();
 		mHolder.addCallback(this);
-		mHolder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL); // mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+		if (Build.VERSION.SDK_INT == Build.VERSION_CODES.GINGERBREAD_MR1) {
+			sdk11plus = false;
+			try {
+				mHolder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
+			} catch (Exception e) {
+				mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+			}
+		}
+		// mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 
 		// mContext = context;
 		numberOfCameras = Camera.getNumberOfCameras();
@@ -51,12 +63,22 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		return supportedPreviewSizes;
 	}
 
+	@SuppressLint("NewApi")
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		if (cameraCurrentlyLocked == -1) {
 			cameraCurrentlyLocked = defaultCameraId;
 		}
 		mCamera = Camera.open(cameraCurrentlyLocked);
+		if (sdk11plus) {
+			try {
+				android.graphics.SurfaceTexture st = new android.graphics.SurfaceTexture(
+						0);
+				mCamera.setPreviewTexture(st);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		mParameters = mCamera.getParameters();
 
 		guessPreviewSize();
@@ -107,6 +129,7 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		mCamera.addCallbackBuffer(new byte[bufsize]);
 	}
 
+	@SuppressLint("NewApi")
 	public void switchCamera() {
 		if (numberOfCameras == 1)
 			return;
@@ -118,6 +141,15 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 			mCamera = null;
 		}
 		mCamera = Camera.open((cameraCurrentlyLocked + 1) % numberOfCameras);
+		if (sdk11plus) {
+			try {
+				android.graphics.SurfaceTexture st = new android.graphics.SurfaceTexture(
+						0);
+				mCamera.setPreviewTexture(st);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		cameraCurrentlyLocked = (cameraCurrentlyLocked + 1) % numberOfCameras;
 		mParameters = mCamera.getParameters();
 		guessPreviewSize();

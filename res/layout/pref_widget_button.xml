@@ -6,4 +6,4 @@
     android:layout_height="wrap_content"
     android:ems="3"
     android:onClick="onButtonClicked"
-    android:text="@string/kps_button" />
+    android:text="@android:string/ok" />

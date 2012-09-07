@@ -21,11 +21,9 @@ import android.graphics.RectF;
 import android.hardware.Camera;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.FloatMath;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 public class KView extends View implements Camera.PreviewCallback {
@@ -123,22 +121,20 @@ public class KView extends View implements Camera.PreviewCallback {
 		} else {
 			mBlurVal = -1;
 		}
+		mBitmap = bitmap;
+	}
 
-		// mStartAngle = mAngle;
-		// mPaint.setAntiAlias(true);
-		// mPaint.setAlpha(125);
-		DisplayMetrics mMetrics = new DisplayMetrics();
-		WindowManager wm = (WindowManager) context
-				.getSystemService(Context.WINDOW_SERVICE);
-		wm.getDefaultDisplay().getMetrics(mMetrics);
-		sHeight = mMetrics.heightPixels;
-		sWidth = mMetrics.widthPixels;
+	@Override
+	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		super.onSizeChanged(w, h, oldw, oldh);
+		sHeight = getHeight();
+		sWidth = getWidth();
 		mBitmapViewWidth = (int) (sWidth / 2);
 		mCenterX = mBitmapViewWidth;
 		mCenterY = sHeight / 2;
 		mScreenRadius = Math.min(mBitmapViewWidth, sHeight / 2);
 		// mBitmap.getHeight()));
-		setBitmap(bitmap);
+		setBitmap();
 		drawIntoBitmap();
 	}
 
@@ -308,7 +304,7 @@ public class KView extends View implements Camera.PreviewCallback {
 			}
 		}
 
-		new SingleMediaScanner(mContext, file);
+		new SingleMediaScanner(mContext, directory);
 
 		byteArray = null;
 		System.gc();
@@ -350,8 +346,7 @@ public class KView extends View implements Camera.PreviewCallback {
 		}
 	}
 
-	public void setBitmap(Bitmap bitmap) {
-		mBitmap = bitmap;
+	public void setBitmap() {
 		mBitmapWidth = mBitmap.getWidth();
 		mBitmapHeight = mBitmap.getHeight();
 		mRadius = (int) (mBitmapWidth / 2);
@@ -381,7 +376,7 @@ public class KView extends View implements Camera.PreviewCallback {
 		// .show();
 	}
 
-	public void setBitmap(Bitmap bitmap, int i) {
+	public void setBitmap(Bitmap bitmap) {
 		mBitmap = bitmap;
 	}
 
@@ -587,7 +582,7 @@ public class KView extends View implements Camera.PreviewCallback {
 		mYUVProcessor.processYUV420SP(rgb, data, mPreviewWidth, mPreviewHeight);
 		Bitmap bmp = Bitmap.createBitmap(rgb, mPreviewWidth, mPreviewHeight,
 				Bitmap.Config.ARGB_8888);
-		setBitmap(bmp, 0);
+		setBitmap(bmp);
 		// n++;
 		// if (n == 10) {
 		// debugString = Double
