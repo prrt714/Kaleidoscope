@@ -129,6 +129,14 @@ public class KView extends View implements Camera.PreviewCallback {
 		super.onSizeChanged(w, h, oldw, oldh);
 		sHeight = getHeight();
 		sWidth = getWidth();
+		if (sHeight == 0 || sWidth == 0) {
+			android.util.DisplayMetrics mMetrics = new android.util.DisplayMetrics();
+			android.view.WindowManager wm = (android.view.WindowManager) mContext
+					.getSystemService(Context.WINDOW_SERVICE);
+			wm.getDefaultDisplay().getMetrics(mMetrics);
+			sHeight = mMetrics.heightPixels;
+			sWidth = mMetrics.widthPixels;
+		}
 		mBitmapViewWidth = (int) (sWidth / 2);
 		mCenterX = mBitmapViewWidth;
 		mCenterY = sHeight / 2;
