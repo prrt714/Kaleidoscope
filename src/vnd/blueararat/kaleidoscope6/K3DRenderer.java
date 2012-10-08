@@ -89,7 +89,7 @@ class K3DRenderer implements GLSurfaceView.Renderer, SensorEventListener {
 					event.values);
 			if (isLandscape) {
 				SensorManager.remapCoordinateSystem(mRotationMatrix,
-						SensorManager.AXIS_Y, SensorManager.AXIS_X,
+						SensorManager.AXIS_Y, SensorManager.AXIS_MINUS_X,
 						mRotationMatrix2);
 			}
 		}
