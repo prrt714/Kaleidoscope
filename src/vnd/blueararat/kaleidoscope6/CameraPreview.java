@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.AutoFocusCallback;
@@ -245,18 +246,20 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		return numberOfCameras;
 	}
 
-	public void takePicture() {
-		(new AsyncTask<String, Void, String>() {
+	public void takePicture(Bitmap bmp) {
+		(new AsyncTask<Bitmap, Void, String>() {
 
 			@Override
-			protected String doInBackground(String... params) {
-				return mKView.exportImage();
+			protected String doInBackground(Bitmap... params) {
+				if (params.length == 0)
+					return mKView.exportImage(null);
+				return mKView.exportImage(params[0]);
 			}
 
 			@Override
 			protected void onPostExecute(String result) {
 				mKView.toastString(result, 1);
 			}
-		}).execute();
+		}).execute(bmp);
 	}
 }

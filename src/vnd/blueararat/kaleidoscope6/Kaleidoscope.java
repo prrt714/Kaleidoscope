@@ -14,14 +14,22 @@ import android.database.CursorIndexOutOfBoundsException;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.hardware.SensorManager;
 import android.net.Uri;
+import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 public class Kaleidoscope extends Activity {
@@ -36,6 +44,16 @@ public class Kaleidoscope extends Activity {
 	private Uri imageUri;
 	private KView mK;
 	private String sStringUri = "";
+	private FrameLayout mFrame;
+
+	private GLSurfaceView mGLSurfaceView;
+	private K3DRenderer mK3DRenderer;
+	private static boolean use3D = false;
+	private View mOverlayView;
+
+	public int getWidth() {
+		return mFrame.getWidth();
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,10 +72,69 @@ public class Kaleidoscope extends Activity {
 		} else {
 			loadBitmap(options, null);
 		}
+		mOverlayView = new View(this);
+		mOverlayView.setBackgroundColor(Color.BLACK);
 		mK = new KView(this, mBitmap);
 		mNumberOfMirrors = mK.getNumberOfMirrors();
-		setContentView(mK);
+
+		setContentView(R.layout.main);
+		mFrame = (FrameLayout) findViewById(R.id.frame);
+
+		mFrame.addView(mK);
+		// setContentView(mK);
 	}
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+		if (mGLSurfaceView != null) {
+			mGLSurfaceView.onResume();
+			new Renew().execute();
+		}
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		if (mGLSurfaceView != null) {
+			mGLSurfaceView.onPause();
+			mK3DRenderer.stop();
+		}
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+		if (use3D) {
+			new Renew().execute();
+		}
+	}
+
+	class Renew extends AsyncTask<Void, Void, Void> {
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			SystemClock.sleep(5);
+			return null;
+		}
+
+		@Override
+		protected void onPostExecute(Void result) {
+			if (mGLSurfaceView == null) {
+				toggle3D(use3D);
+			} else {
+				mK.updateTexture();
+				mK3DRenderer.start();
+			}
+		}
+
+	}
+
+	// @Override
+	// protected void onPostCreate(Bundle savedInstanceState) {
+	// super.onPostCreate(savedInstanceState);
+	//
+	// }
 
 	private void loadBitmap(Options options, Uri uri) {
 		Options opts = new Options();
@@ -98,7 +175,9 @@ public class Kaleidoscope extends Activity {
 					input = this.getContentResolver().openInputStream(uri);
 					mBitmap = BitmapFactory.decodeStream(input, null, options);
 					input.close();
-					// mBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+					// mBitmap =
+					// MediaStore.Images.Media.getBitmap(this.getContentResolver(),
+					// uri);
 					return;
 				} catch (FileNotFoundException e) {
 					opts = null;
@@ -155,24 +234,16 @@ public class Kaleidoscope extends Activity {
 		System.gc();
 	}
 
-	// @Override
-	// protected void onResume() {
-	// super.onResume();
-	// mK.onResumeKSurfaceView();
-	// }
-	//
-	// @Override
-	// protected void onPause() {
-	// super.onPause();
-	// mK.onPauseKSurfaceView();
-	// }
-
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		mBitmap.recycle();
 		mK.destroy();
 		mK = null;
+		if (use3D) {
+			mK3DRenderer.stop();
+			mGLSurfaceView = null;
+		}
 		System.gc();
 		System.gc();
 	}
@@ -184,6 +255,19 @@ public class Kaleidoscope extends Activity {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
 		// mMenu = menu;
+		return true;
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		MenuItem k3d = menu.findItem(R.id.K3D);
+		if (use3D) {
+			k3d.setIcon(R.drawable.ic_menu_2d);
+			k3d.setTitle("2D");
+		} else {
+			k3d.setIcon(R.drawable.ic_menu_3d);
+			k3d.setTitle("3D");
+		}
 		return true;
 	}
 
@@ -210,18 +294,58 @@ public class Kaleidoscope extends Activity {
 			return true;
 
 		case R.id.export:
-			new Export().execute();
+			if (!use3D) {
+				new Export().execute();
+			} else {
+				mK3DRenderer.setShouldExport(true);
+			}
+			return true;
+
+		case R.id.K3D:
+			toggle3D(use3D = !use3D);
 			return true;
 		}
 
 		return false;
 	}
 
-	private class Export extends AsyncTask<String, Void, String> {
+	private void toggle3D(boolean use) {
+		if (use) {
+			SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+			mK3DRenderer = new K3DRenderer(this, sm);
+			mGLSurfaceView = new GLSurfaceView(this);
+			mGLSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+			mGLSurfaceView.setRenderer(mK3DRenderer);
+			mGLSurfaceView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+			mGLSurfaceView.setZOrderOnTop(true);
+			FrameLayout.LayoutParams flp = new FrameLayout.LayoutParams(
+					mFrame.getLayoutParams());
+			int margin = (mFrame.getHeight() - mFrame.getWidth()) / 2;
+			flp.gravity = Gravity.CENTER;
+			flp.setMargins(0, margin, 0, margin);
+			// if (mOverlayView.getParent() == null)
+			mFrame.addView(mOverlayView);
+			mFrame.addView(mGLSurfaceView, flp);// .addView(mGLSurfaceView);
+			mK.setK3DMode(true, mK3DRenderer);
+			mK.updateTexture();
+			mK3DRenderer.start();
+		} else if (mK3DRenderer != null) {
+			mK.setK3DMode(false, null);
+			mFrame.removeView(mOverlayView);
+			mFrame.removeView(mGLSurfaceView);
+			mK3DRenderer.stop();
+			mGLSurfaceView = null;
+			mK3DRenderer = null;
+		}
+	}
+
+	class Export extends AsyncTask<Bitmap, Void, String> {
 
 		@Override
-		protected String doInBackground(String... params) {
-			return mK.exportImage();
+		protected String doInBackground(Bitmap... params) {
+			if (params.length == 0)
+				return mK.exportImage(null);
+			return mK.exportImage(params[0]);
 		}
 
 		@Override

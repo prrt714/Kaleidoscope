@@ -25,5 +25,10 @@
         android:icon="@drawable/ic_menu_settings"
         android:title="@string/settings">
     </item>
+    <item
+        android:id="@+id/K3D"
+        android:icon="@drawable/ic_menu_3d"
+        android:title="3D">
+    </item>
 
 </menu>

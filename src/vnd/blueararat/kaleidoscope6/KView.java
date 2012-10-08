@@ -61,7 +61,7 @@ public class KView extends View implements Camera.PreviewCallback {
 	// private static Uri imageUri;
 	// private KaleidoscopeView k;
 	// private String mStringUri = "";
-	private int sWidth, sHeight;
+	private int sWidth, sHeight, texX, texY, texWidth;
 	private int mScaledHeight, mScaledWidth, mBitmapWidth, mBitmapHeight;
 	private int mX, mY;
 	// private float startX, startY;
@@ -97,6 +97,14 @@ public class KView extends View implements Camera.PreviewCallback {
 	private int mDataLength, mPreviewWidth, mPreviewHeight;
 	// private int mPictureWidth, mPictureHeight;
 	private SharedPreferences preferences;
+
+	private boolean use3D = false;
+	private K3DRenderer mK3DRenderer;
+
+	public void setK3DMode(boolean use3D, K3DRenderer mK3DRenderer) {
+		this.use3D = use3D;
+		this.mK3DRenderer = mK3DRenderer;
+	}
 
 	public KView(Context context) {
 		this(context, BitmapFactory.decodeResource(context.getResources(),
@@ -137,11 +145,24 @@ public class KView extends View implements Camera.PreviewCallback {
 			sHeight = mMetrics.heightPixels;
 			sWidth = mMetrics.widthPixels;
 		}
+
+		if (sHeight < sWidth) {
+			texY = 0;
+			texX = (sWidth - sHeight) / 2;
+			;
+			texWidth = sHeight;
+		} else {
+			texY = (sHeight - sWidth) / 2;
+			texX = 0;
+			texWidth = sWidth;
+		}
+
 		mBitmapViewWidth = (int) (sWidth / 2);
 		mCenterX = mBitmapViewWidth;
 		mCenterY = sHeight / 2;
 		mScreenRadius = Math.min(mBitmapViewWidth, sHeight / 2);
 		// mBitmap.getHeight()));
+		setDrawingCacheBackgroundColor(Color.TRANSPARENT);
 		setBitmap();
 		drawIntoBitmap();
 	}
@@ -234,7 +255,8 @@ public class KView extends View implements Camera.PreviewCallback {
 				mBitmapNewHeight + posY), new RectF(0, 0, x, y), mPaint);
 	}
 
-	String exportImage() {
+	String exportImage(Bitmap bmp) {
+
 		Bitmap.Config g;
 		Bitmap.CompressFormat cf;
 		String ext = preferences.getString("format",
@@ -250,31 +272,33 @@ public class KView extends View implements Camera.PreviewCallback {
 			g = Bitmap.Config.RGB_565;
 			cf = Bitmap.CompressFormat.JPEG;
 			q = 50 + preferences.getInt("jpeg_quality", 40);
-			// Toast.makeText(mContext, Integer.toString(q), Toast.LENGTH_LONG)
-			// .show();
 		}
+		Bitmap exportBitmap = null;
+		if (bmp == null) {
+			int x, rad, factor;
+			Bitmap newBitmap = mViewBitmap;
+			if (!mBlur) {
+				factor = Memory.factor();
+				newBitmap = Bitmap.createBitmap(mRadius / factor,
+						mBitmapNewHeight / factor, Bitmap.Config.ARGB_8888);
+				// Bitmap bm = rotatedBitmap(mLocalAngle, mBitmap);
+				drawIntoBitmap(newBitmap, mBitmap, mCurX, mCurY);
+				x = mRadius * 2 / factor;
+				rad = mRadius / factor;
+			} else {
+				x = mBitmapViewWidth * 2;
+				rad = mBitmapViewWidth;
+			}
+			exportBitmap = Bitmap.createBitmap(x, x, g);
 
-		int x, rad, factor;
-		Bitmap newBitmap = mViewBitmap;
-		if (!mBlur) {
-			factor = Memory.factor();
-			newBitmap = Bitmap.createBitmap(mRadius / factor, mBitmapNewHeight
-					/ factor, Bitmap.Config.ARGB_8888);
-			// Bitmap bm = rotatedBitmap(mLocalAngle, mBitmap);
-			drawIntoBitmap(newBitmap, mBitmap, mCurX, mCurY);
-			x = mRadius * 2 / factor;
-			rad = mRadius / factor;
+			Canvas c = new Canvas(exportBitmap);
+			paint(c, newBitmap, rad);
+			if (!mBlur)
+				newBitmap.recycle();
+			System.gc();
 		} else {
-			x = mBitmapViewWidth * 2;
-			rad = mBitmapViewWidth;
+			exportBitmap = bmp;
 		}
-		Bitmap exportBitmap = Bitmap.createBitmap(x, x, g);
-
-		Canvas c = new Canvas(exportBitmap);
-		paint(c, newBitmap, rad);
-		if (!mBlur)
-			newBitmap.recycle();
-		System.gc();
 
 		String path = preferences.getString(Prefs.KEY_FOLDER, "");
 		if (path.equals("")) {
@@ -526,7 +550,6 @@ public class KView extends View implements Camera.PreviewCallback {
 				if (r < mScreenRadius)
 					r = mScreenRadius;
 				setViewBitmapSizes(r);
-
 			} else if (P == 3) {
 				mCenterX = (int) (sMx + event.getX(2));
 				mCenterY = (int) (sMy + event.getY(2));
@@ -536,8 +559,24 @@ public class KView extends View implements Camera.PreviewCallback {
 
 			drawIntoBitmap();
 			invalidate();
+			if (use3D) {
+				updateTexture();
+			}
 		}
 		return true;
+	}
+
+	public void updateTexture() {
+		setDrawingCacheEnabled(true);
+
+		buildDrawingCache(true);
+		try {
+			mK3DRenderer.setBitmap(Bitmap.createBitmap(getDrawingCache(), texX,
+					texY, texWidth, texWidth));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		setDrawingCacheEnabled(false);
 	}
 
 	public void resetSizes(int width, int height) {
@@ -601,6 +640,9 @@ public class KView extends View implements Camera.PreviewCallback {
 		// }
 		drawIntoBitmap(0);
 		invalidate();
+		if (use3D) {
+			updateTexture();
+		}
 		camera.addCallbackBuffer(data);
 	}
 
@@ -633,10 +675,19 @@ public class KView extends View implements Camera.PreviewCallback {
 	}
 
 	void destroy() {
-		mViewBitmap.recycle();
-		mBitmap.recycle();
-		System.gc();
-		System.gc();
+		if (mViewBitmap != null)
+			mViewBitmap.recycle();
+		if (mBitmap != null)
+			mBitmap.recycle();
+		if (mK3DRenderer != null) {
+			mK3DRenderer.stop();
+			mK3DRenderer = null;
+		}
+		try {
+			System.gc();
+			System.gc();
+		} catch (NullPointerException e) {
+		}
 	}
 
 	// public void reset(Size previewImageSize) {

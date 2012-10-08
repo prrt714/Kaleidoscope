@@ -7,8 +7,13 @@ import android.content.SharedPreferences.Editor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
+import android.graphics.Color;
+import android.graphics.PixelFormat;
+import android.hardware.SensorManager;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -30,6 +35,11 @@ public class KCamera extends Activity {
 	private FrameLayout mFrame;
 	private KView mKView;
 	private CameraPreview mCameraPreview;
+
+	public CameraPreview getCameraPreview() {
+		return mCameraPreview;
+	}
+
 	// private Camera mCamera;
 	private int numberOfCameras;
 	SharedPreferences preferences;
@@ -39,6 +49,15 @@ public class KCamera extends Activity {
 	// private LinearLayout mLl;
 	private FrameLayout mFl;
 	private YUVProcessor mYUVProcessor;
+
+	private GLSurfaceView mGLSurfaceView;
+	private K3DRenderer mK3DRenderer;
+	private boolean use3D = false;
+	private View mOverlayView;
+
+	public int getWidth() {
+		return mFrame.getWidth();
+	}
 
 	// private boolean mAlpha;
 
@@ -88,6 +107,9 @@ public class KCamera extends Activity {
 		mFrame.addView(mCameraPreview);
 		// mCameraPreview.setVisibility(View.GONE);
 		mFrame.addView(mKView);
+		mOverlayView = new View(this);
+		mOverlayView.setBackgroundColor(Color.BLACK);
+
 		numberOfCameras = mCameraPreview.getNumberOfCameras();
 	}
 
@@ -222,10 +244,16 @@ public class KCamera extends Activity {
 		} else {
 			focus.setVisible(true);
 		}
-		// Toast.makeText(getApplicationContext(), "" + numberOfCameras,
-		// Toast.LENGTH_SHORT).show();
 		if (numberOfCameras == 1) {
 			menu.removeItem(R.id.switch_camera);
+		}
+		MenuItem k3d = menu.findItem(R.id.K3D);
+		if (use3D) {
+			k3d.setIcon(R.drawable.ic_menu_2d);
+			k3d.setTitle("2D");
+		} else {
+			k3d.setIcon(R.drawable.ic_menu_3d);
+			k3d.setTitle("3D");
 		}
 		return true;
 	}
@@ -252,7 +280,12 @@ public class KCamera extends Activity {
 			mCameraPreview.autoFocus(null);
 			return true;
 		case R.id.take_picture:
-			mCameraPreview.takePicture();
+			if (!use3D) {
+				mCameraPreview.takePicture(null);
+			} else {
+				mK3DRenderer.setShouldExport(true);
+			}
+
 			return true;
 		case R.id.color_mode:
 			if (inMenu == true)
@@ -261,6 +294,9 @@ public class KCamera extends Activity {
 			return true;
 		case R.id.settings_c:
 			startActivity(new Intent(this, Prefs.class));
+			return true;
+		case R.id.K3D:
+			toggle3D(use3D = !use3D);
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);
@@ -441,25 +477,33 @@ public class KCamera extends Activity {
 			startActivity(new Intent(this, Kaleidoscope.class));
 		}
 	}
-	
-	// private void exitMenu() {
-	// setContentView(mFrame);
-	// inMenu = false;
-	// }
 
-	// @Override
-	// protected void onPause() {
-	// super.onPause();
-	//
-	// SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-	// SharedPreferences.Editor editor = preferences.edit();
-	//
-	// editor.putString("color_filter",
-	// mKView.getYUVProcessor().getName());
-	// editor.putInt("previewWidth", mCameraPreview.getPreviewWidth());
-	// editor.putInt("previewHeight", mCameraPreview.getPreviewHeight());
-	// editor.putString("focusMode", mCameraPreview.getFocusMode());
-	//
-	// editor.commit();
-	// }
+	private void toggle3D(boolean use) {
+		if (use) {
+			SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+			mK3DRenderer = new K3DRenderer(this, sm);
+			mGLSurfaceView = new GLSurfaceView(this);
+			mGLSurfaceView.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
+			mGLSurfaceView.setRenderer(mK3DRenderer);
+			mGLSurfaceView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+			mGLSurfaceView.setZOrderOnTop(true);
+			FrameLayout.LayoutParams flp = new FrameLayout.LayoutParams(
+					mFrame.getLayoutParams());
+			int margin = (mFrame.getHeight() - mFrame.getWidth()) / 2;
+			flp.gravity = Gravity.CENTER;
+			flp.setMargins(0, margin, 0, margin);
+			mFrame.addView(mOverlayView);
+			mFrame.addView(mGLSurfaceView, flp);
+			mKView.setK3DMode(true, mK3DRenderer);
+			mKView.updateTexture();
+			mK3DRenderer.start();
+		} else if (mK3DRenderer != null) {
+			mKView.setK3DMode(false, null);
+			mFrame.removeView(mOverlayView);
+			mFrame.removeView(mGLSurfaceView);
+			mK3DRenderer.stop();
+			mGLSurfaceView = null;
+			mK3DRenderer = null;
+		}
+	}
 }
