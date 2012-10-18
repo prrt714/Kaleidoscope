@@ -403,7 +403,11 @@ public class Kaleidoscope extends Activity {
 			filePath = getPath(uri);
 		} catch (CursorIndexOutOfBoundsException e) {
 			return false;
+		} catch (NullPointerException e) {
+			return false;
 		}
+		if (filePath == null)
+			return false;
 		if (new File(filePath).exists()) {
 			return true;
 		} else {
