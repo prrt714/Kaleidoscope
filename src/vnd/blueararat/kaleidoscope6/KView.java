@@ -9,6 +9,7 @@ import java.util.Date;
 
 import vnd.blueararat.kaleidoscope6.filters.SimplyRGB;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,6 +20,7 @@ import android.graphics.Path;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Camera;
+import android.net.Uri;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.FloatMath;
@@ -336,14 +338,15 @@ public class KView extends View implements Camera.PreviewCallback {
 			}
 		}
 
-		new SingleMediaScanner(mContext, directory);
-
 		byteArray = null;
 		System.gc();
 		String toast1;
 		if (file.exists()) {
 			toast1 = mContext.getString(R.string.picture_saved_to) + " "
 					+ file.toString();
+			mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri
+					.parse("file://"
+							+ Environment.getExternalStorageDirectory())));
 		} else {
 			toast1 = mContext.getString(R.string.cant_save_picture_to) + " "
 					+ directory.toString()
