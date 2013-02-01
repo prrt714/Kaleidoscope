@@ -35,6 +35,7 @@ import android.widget.Toast;
 public class Kaleidoscope extends Activity {
 	SharedPreferences preferences;
 	static final String KEY_IMAGE_URI = "image_uri";
+	static final String KEY_CAMERA_IN_MENU = "camera_in_menu";
 	// private static final String TAG = "Kaleidoscope";
 	static final int CHANGE_NUMBER_OF_MIRRORS = 1;
 	private static final int OPEN_PICTURE = 2;
@@ -49,6 +50,7 @@ public class Kaleidoscope extends Activity {
 	private GLSurfaceView mGLSurfaceView;
 	private K3DRenderer mK3DRenderer;
 	private static boolean use3D = false;
+	private boolean bCameraInMenu;
 	private View mOverlayView;
 
 	public int getWidth() {
@@ -60,6 +62,7 @@ public class Kaleidoscope extends Activity {
 		super.onCreate(savedInstanceState);
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		sStringUri = preferences.getString(KEY_IMAGE_URI, "");
+		bCameraInMenu = preferences.getBoolean(KEY_CAMERA_IN_MENU, true);
 		Options options = new BitmapFactory.Options();
 		options.inScaled = false;
 		if (sStringUri.length() != 0) {
@@ -268,6 +271,12 @@ public class Kaleidoscope extends Activity {
 			k3d.setIcon(R.drawable.ic_menu_3d);
 			k3d.setTitle("3D");
 		}
+
+		MenuItem camera = menu.findItem(R.id.camera);
+		if (camera != null) {
+			camera.setVisible(bCameraInMenu);
+			camera.setEnabled(bCameraInMenu);
+		}
 		return true;
 	}
 
@@ -394,6 +403,7 @@ public class Kaleidoscope extends Activity {
 				if (blurValue != mK.getBlurValue())
 					mK.setBlurValue(blurValue);
 			}
+			bCameraInMenu = preferences.getBoolean(KEY_CAMERA_IN_MENU, true);
 		}
 	}
 

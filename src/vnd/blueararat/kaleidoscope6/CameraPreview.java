@@ -1,6 +1,9 @@
 package vnd.blueararat.kaleidoscope6;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import android.annotation.SuppressLint;
@@ -58,12 +61,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		mKView = kaleidoscopeView;
 	}
 
-	private List<Size> supportedPreviewSizes;
-
-	List<Size> getSupportedPreviewSizes() {
-		return supportedPreviewSizes;
-	}
-
 	@SuppressLint("NewApi")
 	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
@@ -81,8 +78,8 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 			}
 		}
 		mParameters = mCamera.getParameters();
-
-		guessPreviewSize();
+		supportedPreviewSizes = getSupportedPreviewSizes();
+		guessPreviewSize(0);
 	}
 
 	@Override
@@ -115,14 +112,23 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		mCamera.setPreviewCallbackWithBuffer(null);
 		mCamera.stopPreview();
 
-		mKView.resetSizes(previewWidth, previewHeight);
-		mParameters.setPreviewSize(previewWidth, previewHeight);
+		int j = 0;
+		try {
+			while (j != -1) {
 
-		mParameters.setColorEffect(sCameraEffect);
-		mCamera.setParameters(mParameters);
+				mKView.resetSizes(previewWidth, previewHeight);
+				mParameters.setPreviewSize(previewWidth, previewHeight);
 
-		mCamera.setPreviewCallbackWithBuffer(mKView);
-		mCamera.startPreview();
+				mParameters.setColorEffect(sCameraEffect);
+				mCamera.setParameters(mParameters);
+
+				mCamera.setPreviewCallbackWithBuffer(mKView);
+				mCamera.startPreview();
+				j = -1;
+			}
+		} catch (RuntimeException e) {
+			j = guessPreviewSize(j);
+		}
 
 		int imgformat = mParameters.getPreviewFormat();
 		int bitsperpixel = ImageFormat.getBitsPerPixel(imgformat);
@@ -153,19 +159,28 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		}
 		cameraCurrentlyLocked = (cameraCurrentlyLocked + 1) % numberOfCameras;
 		mParameters = mCamera.getParameters();
-		guessPreviewSize();
-		mParameters.setPreviewSize(previewWidth, previewHeight);
-		// requestLayout();
-		mKView.resetSizes(previewWidth, previewHeight);
-		mCamera.setParameters(mParameters);
-		// mPreview.switchCamera(mCamera);
-		mCamera.setPreviewCallbackWithBuffer(mKView);
+		supportedPreviewSizes = getSupportedPreviewSizes();
+		int j = 0;
+		while (j != -1) {
+			try {
+				j = guessPreviewSize(j);
+				mParameters.setPreviewSize(previewWidth, previewHeight);
+				// requestLayout();
+				mKView.resetSizes(previewWidth, previewHeight);
+				mCamera.setParameters(mParameters);
+				// mPreview.switchCamera(mCamera);
+				mCamera.setPreviewCallbackWithBuffer(mKView);
 
-		int imgformat = mParameters.getPreviewFormat();
-		int bitsperpixel = ImageFormat.getBitsPerPixel(imgformat);
+				int imgformat = mParameters.getPreviewFormat();
+				int bitsperpixel = ImageFormat.getBitsPerPixel(imgformat);
 
-		mCamera.addCallbackBuffer(new byte[(previewWidth * previewHeight * bitsperpixel) / 8 + 1]);
-		mCamera.startPreview();
+				mCamera.addCallbackBuffer(new byte[(previewWidth
+						* previewHeight * bitsperpixel) / 8 + 1]);
+				mCamera.startPreview();
+				j = -1;
+			} catch (RuntimeException e) {
+			}
+		}
 
 	}
 
@@ -187,21 +202,50 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 		sCameraEffect = string;
 	}
 
-	private void guessPreviewSize() {
-		supportedPreviewSizes = mParameters.getSupportedPreviewSizes();
-		int w = 0;
-		int h = 0;
-		for (Size sps : supportedPreviewSizes) {
-			// Log.i(TAG, String.format("%d---%d", sps.width, sps.height));
-			if (sps.width >= w) {
-				if (sps.height >= h) {
-					w = sps.width;
-					h = sps.height;
-				}
-			}
+	private List<Size> supportedPreviewSizes;
+
+	List<Size> getSupportedPreviewSizes() {
+		List<Size> rawSupportedSizes = mParameters.getSupportedPreviewSizes();
+		if (rawSupportedSizes == null) {
+			return null;
 		}
-		previewWidth = w;
-		previewHeight = h;
+
+		// sort descending
+		List<Size> supportedPreviewSizes = new ArrayList<Size>(
+				rawSupportedSizes);
+		Collections.sort(supportedPreviewSizes, new Comparator<Camera.Size>() {
+			@Override
+			public int compare(Size a, Size b) {
+				int sa = a.height * a.width;
+				int sb = b.height * b.width;
+				if (sb < sa) {
+					return -1;
+				}
+				if (sb > sa) {
+					return 1;
+				}
+				return 0;
+			}
+		});
+		return supportedPreviewSizes;
+	}
+
+	private int guessPreviewSize(int i) {
+		Size s = null;
+		if (supportedPreviewSizes == null) {
+			s = mParameters.getPreviewSize();
+			previewWidth = s.width;
+			previewHeight = s.height;
+			return -1;
+		}
+		try {
+			s = supportedPreviewSizes.get(i);
+		} catch (IndexOutOfBoundsException e) {
+			return -1;
+		}
+		previewWidth = s.width;
+		previewHeight = s.height;
+		return i + 1;
 	}
 
 	// private void guessPictureSize() {
@@ -228,15 +272,6 @@ class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
 	// if (m.equals(mode)) return true;
 	// return false;
 	// }
-
-	int currentPreviewSizeIndex() {
-		for (int i = 0; i < supportedPreviewSizes.size(); i++) {
-			Size sps = supportedPreviewSizes.get(i);
-			if (sps.width == previewWidth && sps.height == previewHeight)
-				return i;
-		}
-		throw new Error("This should never happen");
-	}
 
 	void autoFocus(AutoFocusCallback cb) {
 		mCamera.autoFocus(cb);

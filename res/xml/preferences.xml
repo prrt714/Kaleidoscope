@@ -47,6 +47,13 @@
             android:title="@string/save_location" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/kps_cat" >
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="camera_in_menu"
+            android:summaryOff="@string/disable_camera_summary2"
+            android:summaryOn="@string/disable_camera_summary1"
+            android:title="@string/disable_camera_title" />
+
         <Preference
             android:key="reset_settings"
             android:selectable="false"

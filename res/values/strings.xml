@@ -42,5 +42,8 @@
     <string name="cant_zoom_in">Can\'t zoom in. Memory is used up.</string>
     <string name="picture_was_too_large">The picture was too large and therefore scaled down</string>
     <string name="times">times.</string>
-
+    <string name="disable_camera_title">Camera in menu</string>
+    <string name="disable_camera_summary1">Camera is present in menu</string>
+    <string name="disable_camera_summary2">Camera is removed from menu</string>
+    
 </resources>

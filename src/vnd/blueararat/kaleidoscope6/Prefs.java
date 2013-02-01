@@ -23,7 +23,8 @@ public class Prefs extends PreferenceActivity implements
 	private SeekbarPref mSeekbarPrefJ;
 	private ListPreference mSaveFormat;
 	private SeekbarPref mSeekbarPrefB;
-	private CheckBoxPreference mCheckBoxPreference;
+	private CheckBoxPreference mCheckBoxBlur;
+	private CheckBoxPreference mCheckBoxCameraInMenu;
 	private FolderPref mPrefSaveLocation;
 	private String mDefaultSaveLocation;
 
@@ -37,8 +38,10 @@ public class Prefs extends PreferenceActivity implements
 				"jpeg_quality");
 		mSeekbarPrefB = (SeekbarPref) getPreferenceScreen().findPreference(
 				"blur_value");
-		mCheckBoxPreference = (CheckBoxPreference) getPreferenceScreen()
+		mCheckBoxBlur = (CheckBoxPreference) getPreferenceScreen()
 				.findPreference("blur");
+		mCheckBoxCameraInMenu = (CheckBoxPreference) getPreferenceScreen()
+				.findPreference(Kaleidoscope.KEY_CAMERA_IN_MENU);
 		mSaveFormat = (ListPreference) getPreferenceScreen().findPreference(
 				"format");
 		mSaveFormat.setSummary(getString(R.string.pictures_will_be_saved) + " "
@@ -117,7 +120,8 @@ public class Prefs extends PreferenceActivity implements
 		mSeekbarPrefJ.setProgressValue(40);
 		mSaveFormat.setValue(getString(R.string.default_save_format));
 		mSeekbarPrefB.setProgressValue(49);
-		mCheckBoxPreference.setChecked(true);
+		mCheckBoxBlur.setChecked(true);
+		mCheckBoxCameraInMenu.setChecked(true);
 		mPrefSaveLocation.reset();
 	}
 
