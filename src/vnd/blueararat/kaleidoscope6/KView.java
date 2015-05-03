@@ -21,6 +21,7 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.FloatMath;
@@ -344,9 +345,17 @@ public class KView extends View implements Camera.PreviewCallback {
 		if (file.exists()) {
 			toast1 = mContext.getString(R.string.picture_saved_to) + " "
 					+ file.toString();
-			mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED, Uri
-					.parse("file://"
-							+ Environment.getExternalStorageDirectory())));
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+				Intent mediaScanIntent = new Intent(
+						Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+				Uri contentUri = Uri.fromFile(file);
+				mediaScanIntent.setData(contentUri);
+				mContext.sendBroadcast(mediaScanIntent);
+			} else {
+				mContext.sendBroadcast(new Intent(Intent.ACTION_MEDIA_MOUNTED,
+						Uri.parse("file://"
+								+ Environment.getExternalStorageDirectory())));
+			}
 		} else {
 			toast1 = mContext.getString(R.string.cant_save_picture_to) + " "
 					+ directory.toString()
