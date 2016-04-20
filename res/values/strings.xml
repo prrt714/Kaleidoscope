@@ -45,5 +45,8 @@
     <string name="disable_camera_title">Camera in menu</string>
     <string name="disable_camera_summary1">Camera is present in menu</string>
     <string name="disable_camera_summary2">Camera is removed from menu</string>
+    <string name="hardware_accel_title">Hardware acceleration</string>
+    <string name="hardware_accel_summary">Requires Android +3.0</string>
+    <string name="hardware_accel_toast">Restart required</string>
     
 </resources>
