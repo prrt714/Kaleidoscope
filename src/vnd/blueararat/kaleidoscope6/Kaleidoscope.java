@@ -20,6 +20,7 @@ import android.hardware.SensorManager;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
@@ -36,6 +37,7 @@ public class Kaleidoscope extends Activity {
 	SharedPreferences preferences;
 	static final String KEY_IMAGE_URI = "image_uri";
 	static final String KEY_CAMERA_IN_MENU = "camera_in_menu";
+	static final String KEY_HARDWARE_ACCEL = "hardware_accel";
 	// private static final String TAG = "Kaleidoscope";
 	static final int CHANGE_NUMBER_OF_MIRRORS = 1;
 	private static final int OPEN_PICTURE = 2;
@@ -63,6 +65,7 @@ public class Kaleidoscope extends Activity {
 		preferences = PreferenceManager.getDefaultSharedPreferences(this);
 		sStringUri = preferences.getString(KEY_IMAGE_URI, "");
 		bCameraInMenu = preferences.getBoolean(KEY_CAMERA_IN_MENU, true);
+
 		Options options = new BitmapFactory.Options();
 		options.inScaled = false;
 		if (sStringUri.length() != 0) {
@@ -84,6 +87,9 @@ public class Kaleidoscope extends Activity {
 		mFrame = (FrameLayout) findViewById(R.id.frame);
 
 		mFrame.addView(mK);
+
+		toggleHardwareAcceleration(preferences.getBoolean(KEY_HARDWARE_ACCEL, true));
+
 		// setContentView(mK);
 	}
 
@@ -313,6 +319,7 @@ public class Kaleidoscope extends Activity {
 		case R.id.K3D:
 			toggle3D(use3D = !use3D);
 			return true;
+
 		}
 
 		return false;
@@ -366,6 +373,7 @@ public class Kaleidoscope extends Activity {
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
+
 
 		if (requestCode == OPEN_PICTURE) {
 			if (resultCode == RESULT_OK) {
@@ -432,5 +440,17 @@ public class Kaleidoscope extends Activity {
 				.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
 		cursor.moveToFirst();
 		return cursor.getString(column_index);
+	}
+
+	private void toggleHardwareAcceleration(boolean requestEnabled) {
+
+		if (Build.VERSION.SDK_INT < 11)
+			return;
+
+		if (!requestEnabled) {
+			// Are there other views that can be set?
+			mOverlayView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+			mK.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+		}
 	}
 }

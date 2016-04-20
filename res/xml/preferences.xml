@@ -49,6 +49,12 @@
     <PreferenceCategory android:title="@string/kps_cat" >
         <CheckBoxPreference
             android:defaultValue="true"
+            android:key="hardware_accel"
+            android:title="@string/hardware_accel_title"
+            android:summary="@string/hardware_accel_summary" />
+
+        <CheckBoxPreference
+            android:defaultValue="true"
             android:key="camera_in_menu"
             android:summaryOff="@string/disable_camera_summary2"
             android:summaryOn="@string/disable_camera_summary1"

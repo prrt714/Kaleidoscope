@@ -13,6 +13,7 @@ import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.view.View;
+import android.widget.Toast;
 
 public class Prefs extends PreferenceActivity implements
 		OnSharedPreferenceChangeListener {
@@ -25,6 +26,7 @@ public class Prefs extends PreferenceActivity implements
 	private SeekbarPref mSeekbarPrefB;
 	private CheckBoxPreference mCheckBoxBlur;
 	private CheckBoxPreference mCheckBoxCameraInMenu;
+	private CheckBoxPreference mCheckBoxHardwareAccel;
 	private FolderPref mPrefSaveLocation;
 	private String mDefaultSaveLocation;
 
@@ -42,6 +44,8 @@ public class Prefs extends PreferenceActivity implements
 				.findPreference("blur");
 		mCheckBoxCameraInMenu = (CheckBoxPreference) getPreferenceScreen()
 				.findPreference(Kaleidoscope.KEY_CAMERA_IN_MENU);
+		mCheckBoxHardwareAccel = (CheckBoxPreference) getPreferenceScreen()
+				.findPreference(Kaleidoscope.KEY_HARDWARE_ACCEL);
 		mSaveFormat = (ListPreference) getPreferenceScreen().findPreference(
 				"format");
 		mSaveFormat.setSummary(getString(R.string.pictures_will_be_saved) + " "
@@ -64,6 +68,18 @@ public class Prefs extends PreferenceActivity implements
 						return true;
 					}
 				});
+
+		mCheckBoxHardwareAccel.setOnPreferenceClickListener(new OnPreferenceClickListener() {
+			@Override
+			public boolean onPreferenceClick(Preference preference) {
+				Toast.makeText(getApplicationContext(),
+						R.string.hardware_accel_toast,
+						Toast.LENGTH_LONG).show();
+				return true;
+			}
+		});
+
+
 	}
 
 	@Override
@@ -109,6 +125,17 @@ public class Prefs extends PreferenceActivity implements
 		}
 	}
 
+	// Save all preferences before exiting.
+	// Since the hardware accel switch prompts for restart, it is better UX
+	// to have it save automaticalli since they may close the app after toggling
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		SharedPreferences preferences = PreferenceManager
+				.getDefaultSharedPreferences(this);
+		preferences.edit().commit();
+	}
+
 	public void onButtonClicked(View v) {
 		SharedPreferences preferences = PreferenceManager
 				.getDefaultSharedPreferences(this);
@@ -122,6 +149,7 @@ public class Prefs extends PreferenceActivity implements
 		mSeekbarPrefB.setProgressValue(49);
 		mCheckBoxBlur.setChecked(true);
 		mCheckBoxCameraInMenu.setChecked(true);
+		mCheckBoxHardwareAccel.setChecked(true);
 		mPrefSaveLocation.reset();
 	}
 
