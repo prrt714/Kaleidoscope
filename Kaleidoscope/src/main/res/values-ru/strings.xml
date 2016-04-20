@@ -45,5 +45,8 @@
     <string name="disable_camera_title">Камера в меню</string>
     <string name="disable_camera_summary1">Камера присутствует в меню</string>
     <string name="disable_camera_summary2">Камера удалена из меню</string>
+    <string name="hardware_accel_title">Аппаратное ускорение</string>
+    <string name="hardware_accel_summary">Нужен Android > 3.0</string>
+    <string name="hardware_accel_toast">Требуется перезапуск</string>
     
 </resources>
