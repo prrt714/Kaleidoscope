@@ -1,13 +1,5 @@
 package vnd.blueararat.kaleidoscope6;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import vnd.blueararat.kaleidoscope6.filters.SimplyRGB;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,10 +16,18 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.FloatMath;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import vnd.blueararat.kaleidoscope6.filters.SimplyRGB;
 
 public class KView extends View implements Camera.PreviewCallback {
 	// Camera.PictureCallback
@@ -537,7 +537,7 @@ public class KView extends View implements Camera.PreviewCallback {
 				if (P == 2) {
 					float sX2 = event.getX(0) - event.getX(1);
 					float sY2 = event.getY(0) - event.getY(1);
-					sD = FloatMath.sqrt(sX2 * sX2 + sY2 * sY2);
+					sD = (float) Math.sqrt(sX2 * sX2 + sY2 * sY2);
 					mBitmapViewWidthInitial = mBitmapViewWidth;
 					return true;
 				} else if (P == 3) {
@@ -556,7 +556,7 @@ public class KView extends View implements Camera.PreviewCallback {
 			} else if (P == 2) {
 				float sX2 = event.getX(0) - event.getX(1);
 				float sY2 = event.getY(0) - event.getY(1);
-				float sD2 = FloatMath.sqrt(sX2 * sX2 + sY2 * sY2);
+				float sD2 = (float) Math.sqrt(sX2 * sX2 + sY2 * sY2);
 
 				int r = mBitmapViewWidthInitial + Math.round(sD2 - sD);
 				if (r < mScreenRadius)
