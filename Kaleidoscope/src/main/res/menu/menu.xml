@@ -11,6 +11,11 @@
         android:title="@string/export">
     </item>
     <item
+        android:id="@+id/exit"
+        android:icon="@drawable/exit_icon"
+        android:title="@string/exit">
+    </item>
+    <item
         android:id="@+id/open"
         android:icon="@drawable/ic_menu_open"
         android:title="@string/open">

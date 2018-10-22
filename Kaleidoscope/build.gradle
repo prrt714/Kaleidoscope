@@ -1,13 +1,12 @@
 apply plugin: 'com.android.application'
-
 android {
-    compileSdkVersion 22
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 26
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "vnd.blueararat.kaleidoscope6"
-        minSdkVersion 10
-        targetSdkVersion 11
+        minSdkVersion 16
+        targetSdkVersion 26
     }
 
     buildTypes {
@@ -19,4 +18,15 @@ android {
             }
         }
     }
+
+    dependencies {
+        implementation 'com.android.support:support-compat:26.0.0'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
 }

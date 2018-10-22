@@ -99,16 +99,18 @@ public class KCamera extends Activity {
 		// null));
 
 		setContentView(R.layout.main);
-		mFrame = (FrameLayout) findViewById(R.id.frame);
+		mFrame = findViewById(R.id.frame);
 
 		// ViewGroup.LayoutParams params = new
 		// ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
 		// mCameraPreview.setLayoutParams(params);
 		mFrame.addView(mCameraPreview);
-		// mCameraPreview.setVisibility(View.GONE);
-		mFrame.addView(mKView);
+
 		mOverlayView = new View(this);
 		mOverlayView.setBackgroundColor(Color.BLACK);
+		mFrame.addView(mOverlayView);
+		// mCameraPreview.setVisibility(View.GONE);
+		mFrame.addView(mKView);
 
 		numberOfCameras = mCameraPreview.getNumberOfCameras();
 	}
@@ -292,12 +294,16 @@ public class KCamera extends Activity {
 				return true;
 			showEffectsMenu();
 			return true;
-		case R.id.settings_c:
-			startActivity(new Intent(this, Prefs.class));
-			return true;
+//		case R.id.settings_c:
+//			startActivity(new Intent(this, Prefs.class));
+//			return true;
 		case R.id.K3D:
 			toggle3D(use3D = !use3D);
 			return true;
+		case R.id.back:
+            finish();
+			startActivity(new Intent(this, Kaleidoscope.class));
+            return true;
 		default:
 			return super.onOptionsItemSelected(item);
 		}
@@ -473,8 +479,9 @@ public class KCamera extends Activity {
 		if (inMenu) {
 			exitMenu();
 		} else {
-			finish();
-			startActivity(new Intent(this, Kaleidoscope.class));
+		    openOptionsMenu();
+//			finish();
+//			startActivity(new Intent(this, Kaleidoscope.class));
 		}
 	}
 
@@ -492,14 +499,14 @@ public class KCamera extends Activity {
 			int margin = (mFrame.getHeight() - mFrame.getWidth()) / 2;
 			flp.gravity = Gravity.CENTER;
 			flp.setMargins(0, margin, 0, margin);
-			mFrame.addView(mOverlayView);
+//			mFrame.addView(mOverlayView);
 			mFrame.addView(mGLSurfaceView, flp);
 			mKView.setK3DMode(true, mK3DRenderer);
 			mKView.updateTexture();
 			mK3DRenderer.start();
 		} else if (mK3DRenderer != null) {
 			mKView.setK3DMode(false, null);
-			mFrame.removeView(mOverlayView);
+//			mFrame.removeView(mOverlayView);
 			mFrame.removeView(mGLSurfaceView);
 			mK3DRenderer.stop();
 			mGLSurfaceView = null;

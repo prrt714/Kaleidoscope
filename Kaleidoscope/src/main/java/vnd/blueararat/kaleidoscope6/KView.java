@@ -118,6 +118,11 @@ public class KView extends View implements Camera.PreviewCallback {
 		super(context);
 		setFocusable(true);
 		mContext = context;
+		mBitmap = bitmap;
+		init();
+	}
+
+	private void init() {
 		preferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 		mNumberOfMirrors = MIN_NOM
 				+ preferences.getInt(KEY_NUMBER_OF_MIRRORS, 6 - MIN_NOM);
@@ -132,7 +137,6 @@ public class KView extends View implements Camera.PreviewCallback {
 		} else {
 			mBlurVal = -1;
 		}
-		mBitmap = bitmap;
 	}
 
 	@Override
@@ -166,7 +170,7 @@ public class KView extends View implements Camera.PreviewCallback {
 		mScreenRadius = Math.min(mBitmapViewWidth, sHeight / 2);
 		// mBitmap.getHeight()));
 		setDrawingCacheBackgroundColor(Color.TRANSPARENT);
-		setBitmap();
+		updateBitmapInfo();
 		drawIntoBitmap();
 	}
 
@@ -211,7 +215,7 @@ public class KView extends View implements Camera.PreviewCallback {
 				mBitmapViewHeight), p);
 	}
 
-	private void drawIntoBitmap(int i) {
+	private void drawFrame() {
 		Canvas c = new Canvas(mViewBitmap);
 		// Paint p = new Paint();
 		Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -369,6 +373,9 @@ public class KView extends View implements Camera.PreviewCallback {
 	}
 
 	public void setViewBitmapSizes(int width) {
+		if (-1 == width) {
+			width = mBitmapViewWidth;
+		}
 		int diam = 2 * width;
 		if (Memory.checkBitmapFitsInMemory(diam, diam)) {
 			mBitmapViewWidth = width;
@@ -390,7 +397,7 @@ public class KView extends View implements Camera.PreviewCallback {
 		}
 	}
 
-	public void setBitmap() {
+	public void updateBitmapInfo() {
 		mBitmapWidth = mBitmap.getWidth();
 		mBitmapHeight = mBitmap.getHeight();
 		mRadius = (int) (mBitmapWidth / 2);
@@ -422,6 +429,19 @@ public class KView extends View implements Camera.PreviewCallback {
 
 	public void setBitmap(Bitmap bitmap) {
 		mBitmap = bitmap;
+	}
+
+	public void redraw(Bitmap bitmap) {
+		setBitmap(bitmap);
+		init();
+		updateBitmapInfo();
+		drawIntoBitmap();
+	}
+
+	public void redraw() {
+		init();
+		updateBitmapInfo();
+		drawIntoBitmap();
 	}
 
 	// public void setFormat(int format) {
@@ -650,7 +670,7 @@ public class KView extends View implements Camera.PreviewCallback {
 		// lastFrame = System.currentTimeMillis();
 		// n = 0;
 		// }
-		drawIntoBitmap(0);
+		drawFrame();
 		invalidate();
 		if (use3D) {
 			updateTexture();

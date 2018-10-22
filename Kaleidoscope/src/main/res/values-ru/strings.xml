@@ -48,5 +48,7 @@
     <string name="hardware_accel_title">Аппаратное ускорение</string>
     <string name="hardware_accel_summary">Нужен Android > 3.0</string>
     <string name="hardware_accel_toast">Требуется перезапуск</string>
-    
+    <string name="exit">Выход</string>
+    <string name="back">Обратно</string>
+
 </resources>

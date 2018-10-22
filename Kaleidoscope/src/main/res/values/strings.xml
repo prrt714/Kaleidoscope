@@ -48,5 +48,7 @@
     <string name="hardware_accel_title">Hardware acceleration</string>
     <string name="hardware_accel_summary">Requires Android +3.0</string>
     <string name="hardware_accel_toast">Restart required</string>
-    
+    <string name="exit">Exit</string>
+    <string name="back">Back</string>
+
 </resources>

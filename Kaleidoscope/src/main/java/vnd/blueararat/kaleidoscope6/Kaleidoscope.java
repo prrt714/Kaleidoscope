@@ -5,10 +5,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.CursorIndexOutOfBoundsException;
 import android.graphics.Bitmap;
@@ -25,6 +28,8 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -34,30 +39,33 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 
 public class Kaleidoscope extends Activity {
-	SharedPreferences preferences;
-	static final String KEY_IMAGE_URI = "image_uri";
-	static final String KEY_CAMERA_IN_MENU = "camera_in_menu";
-	static final String KEY_HARDWARE_ACCEL = "hardware_accel";
-	// private static final String TAG = "Kaleidoscope";
-	static final int CHANGE_NUMBER_OF_MIRRORS = 1;
-	private static final int OPEN_PICTURE = 2;
+    SharedPreferences preferences;
+    static final String KEY_IMAGE_URI = "image_uri";
+    static final String KEY_CAMERA_IN_MENU = "camera_in_menu";
+    static final String KEY_HARDWARE_ACCEL = "hardware_accel";
+    // private static final String TAG = "Kaleidoscope";
+    static final int CHANGE_NUMBER_OF_MIRRORS = 1;
+    private static final int OPEN_PICTURE = 2;
 
-	private int mNumberOfMirrors;
-	private Bitmap mBitmap;// sNewBitmap, sViewBitmap, mBitmap, sExportBitmap;
-	private Uri imageUri;
-	private KView mK;
-	private String sStringUri = "";
-	private FrameLayout mFrame;
+    private int mNumberOfMirrors;
+    private Bitmap mBitmap;// sNewBitmap, sViewBitmap, mBitmap, sExportBitmap;
+    private Uri imageUri;
+    private KView mK;
+    private String sStringUri = "";
+    private FrameLayout mFrame;
+    private Menu mMenu;
 
-	private GLSurfaceView mGLSurfaceView;
-	private K3DRenderer mK3DRenderer;
-	private static boolean use3D = false;
-	private boolean bCameraInMenu;
-	private View mOverlayView;
-
-	public int getWidth() {
+    private GLSurfaceView mGLSurfaceView;
+    private K3DRenderer mK3DRenderer;
+    private static boolean use3D = false;
+    private boolean bCameraInMenu;
+    private View mOverlayView;
+    public int getWidth() {
 		return mFrame.getWidth();
 	}
+
+    private static final int CAN_USE_CAMERA_PERMISSION_RESULT = 3;
+    private static final int CAN_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT = 4;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,23 +76,15 @@ public class Kaleidoscope extends Activity {
 
 		Options options = new BitmapFactory.Options();
 		options.inScaled = false;
-		if (sStringUri.length() != 0) {
-			imageUri = Uri.parse(sStringUri);
-			if (fileExists(imageUri)) {
-				loadBitmap(options, imageUri);
-			} else {
-				loadBitmap(options, null);
-			}
-		} else {
-			loadBitmap(options, null);
-		}
+
+        loadBitmap(options, null);
 		mOverlayView = new View(this);
 		mOverlayView.setBackgroundColor(Color.BLACK);
 		mK = new KView(this, mBitmap);
 		mNumberOfMirrors = mK.getNumberOfMirrors();
 
 		setContentView(R.layout.main);
-		mFrame = (FrameLayout) findViewById(R.id.frame);
+		mFrame = findViewById(R.id.frame);
 
 		mFrame.addView(mK);
 
@@ -184,6 +184,7 @@ public class Kaleidoscope extends Activity {
 					input = this.getContentResolver().openInputStream(uri);
 					mBitmap = BitmapFactory.decodeStream(input, null, options);
 					input.close();
+					mK.redraw(mBitmap);
 					// mBitmap =
 					// MediaStore.Images.Media.getBitmap(this.getContentResolver(),
 					// uri);
@@ -259,11 +260,10 @@ public class Kaleidoscope extends Activity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-
 		// Inflate our menu which can gather user input for switching camera
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
-		// mMenu = menu;
+		mMenu = menu;
 		return true;
 	}
 
@@ -283,6 +283,7 @@ public class Kaleidoscope extends Activity {
 			camera.setVisible(bCameraInMenu);
 			camera.setEnabled(bCameraInMenu);
 		}
+		mMenu = menu;
 		return true;
 	}
 
@@ -303,29 +304,78 @@ public class Kaleidoscope extends Activity {
 			return true;
 
 		case R.id.camera:
-			Intent intent3 = new Intent(this, KCamera.class);
-			finish();
-			startActivity(intent3);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[] {Manifest.permission.CAMERA},
+                        CAN_USE_CAMERA_PERMISSION_RESULT);
+            } else {
+                Intent intent3 = new Intent(this, KCamera.class);
+                finish();
+                startActivity(intent3);
+            }
 			return true;
 
 		case R.id.export:
-			if (!use3D) {
-				new Export().execute();
-			} else {
-				mK3DRenderer.setShouldExport(true);
-			}
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        CAN_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT);
+            } else {
+                export();
+            }
 			return true;
 
 		case R.id.K3D:
 			toggle3D(use3D = !use3D);
 			return true;
 
+        case R.id.exit:
+            finish();
+            return true;
 		}
-
 		return false;
 	}
 
-	private void toggle3D(boolean use) {
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case CAN_USE_CAMERA_PERMISSION_RESULT: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    Intent intent3 = new Intent(this, KCamera.class);
+                    finish();
+                    startActivity(intent3);
+                }
+                break;
+            }
+            case CAN_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT: {
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    export();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request.
+        }
+    }
+
+    private void export() {
+        if (!use3D) {
+            new Export().execute();
+        } else {
+            mK3DRenderer.setShouldExport(true);
+        }
+    }
+
+    private void toggle3D(boolean use) {
 		if (use) {
 			SensorManager sm = (SensorManager) getSystemService(SENSOR_SERVICE);
 			mK3DRenderer = new K3DRenderer(this, sm);
@@ -340,14 +390,14 @@ public class Kaleidoscope extends Activity {
 			flp.gravity = Gravity.CENTER;
 			flp.setMargins(0, margin, 0, margin);
 			// if (mOverlayView.getParent() == null)
-			mFrame.addView(mOverlayView);
+			toggleOverlay(true);
 			mFrame.addView(mGLSurfaceView, flp);// .addView(mGLSurfaceView);
 			mK.setK3DMode(true, mK3DRenderer);
 			mK.updateTexture();
 			mK3DRenderer.start();
 		} else if (mK3DRenderer != null) {
 			mK.setK3DMode(false, null);
-			mFrame.removeView(mOverlayView);
+            toggleOverlay(false);
 			mFrame.removeView(mGLSurfaceView);
 			mK3DRenderer.stop();
 			mGLSurfaceView = null;
@@ -378,13 +428,9 @@ public class Kaleidoscope extends Activity {
 		if (requestCode == OPEN_PICTURE) {
 			if (resultCode == RESULT_OK) {
 				imageUri = data.getData();
-				sStringUri = imageUri.toString();
-				Editor et = preferences.edit();
-				et.putString(KEY_IMAGE_URI, sStringUri);
-				et.commit();
-				Intent it = getIntent();
-				finish();
-				startActivity(it);
+                Options options = new BitmapFactory.Options();
+                options.inScaled = false;
+                loadBitmap(options, imageUri);
 			}
 		} else {
 			String s = preferences.getString(KEY_IMAGE_URI, "");
@@ -395,9 +441,10 @@ public class Kaleidoscope extends Activity {
 						+ preferences.getInt(KView.KEY_NUMBER_OF_MIRRORS,
 								6 - KView.MIN_NOM);
 				if (numberOfMirrors != mNumberOfMirrors || b) {
-					Intent intent = getIntent();
-					finish();
-					startActivity(intent);
+//					Intent intent = getIntent();
+//					finish();
+//					startActivity(intent);
+                    mK.redraw();
 					return;
 				}
 
@@ -453,4 +500,28 @@ public class Kaleidoscope extends Activity {
 			mK.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 		}
 	}
+
+	public void toggleOverlay(boolean enabled) {
+	    if (enabled) {
+            mFrame.addView(mOverlayView);
+        } else {
+	        mFrame.removeView(mOverlayView);
+        }
+    }
+
+    @Override
+    public void onOptionsMenuClosed(Menu menu) {
+        super.onOptionsMenuClosed(menu);
+        mMenu = null;
+    }
+
+
+    @Override
+    public void onBackPressed() {
+	    if (null == mMenu) {
+            openOptionsMenu();
+        } else {
+            super.onBackPressed();
+        }
+    }
 }
