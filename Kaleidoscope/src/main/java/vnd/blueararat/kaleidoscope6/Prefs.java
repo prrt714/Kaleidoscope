@@ -1,9 +1,11 @@
 package vnd.blueararat.kaleidoscope6;
 
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.CheckBoxPreference;
@@ -12,6 +14,9 @@ import android.preference.Preference;
 import android.preference.Preference.OnPreferenceClickListener;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Toast;
 
@@ -56,15 +61,19 @@ public class Prefs extends PreferenceActivity implements
 		mDefaultSaveLocation = Environment.getExternalStoragePublicDirectory(
 				Environment.DIRECTORY_PICTURES).toString();
 		mPrefSaveLocation.setDefaultValue(mDefaultSaveLocation);
+		Prefs mActivity = this;
 		mPrefSaveLocation
 				.setOnPreferenceClickListener(new OnPreferenceClickListener() {
 					@Override
 					public boolean onPreferenceClick(Preference preference) {
-						Intent intent = new Intent(getBaseContext(),
-								FileDialog.class);
-						intent.putExtra(FileDialog.START_PATH, "/sdcard");
-						intent.putExtra(FileDialog.CAN_SELECT_DIR, true);
-						startActivityForResult(intent, SELECT_FOLDER);
+						if (ContextCompat.checkSelfPermission(getBaseContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+								!= PackageManager.PERMISSION_GRANTED) {
+							ActivityCompat.requestPermissions(mActivity,
+									new String[] {Manifest.permission.WRITE_EXTERNAL_STORAGE},
+									Kaleidoscope.CAN_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT);
+						} else {
+							showDirectoryChooser();
+						}
 						return true;
 					}
 				});
@@ -82,6 +91,14 @@ public class Prefs extends PreferenceActivity implements
 
 	}
 
+	private void showDirectoryChooser() {
+		Intent intent = new Intent(getBaseContext(),
+				FileDialog.class);
+		intent.putExtra(FileDialog.START_PATH, "/sdcard");
+		intent.putExtra(FileDialog.CAN_SELECT_DIR, true);
+		startActivityForResult(intent, SELECT_FOLDER);
+	}
+
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -90,6 +107,19 @@ public class Prefs extends PreferenceActivity implements
 			if (resultCode == RESULT_OK) {
 				String sFolder = data.getStringExtra(FileDialog.RESULT_PATH);
 				mPrefSaveLocation.setString(sFolder);
+			}
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		switch (requestCode) {
+			case Kaleidoscope.CAN_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT: {
+				if (grantResults.length > 0
+						&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					showDirectoryChooser();
+				}
+				return;
 			}
 		}
 	}

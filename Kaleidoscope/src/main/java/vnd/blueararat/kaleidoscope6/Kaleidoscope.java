@@ -65,7 +65,7 @@ public class Kaleidoscope extends Activity {
 	}
 
     private static final int CAN_USE_CAMERA_PERMISSION_RESULT = 3;
-    private static final int CAN_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT = 4;
+    public static final int CAN_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT = 4;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
